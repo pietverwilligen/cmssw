@@ -9,7 +9,7 @@
 
 class CSCSegtoRPC {
 public:
-  explicit CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments,const edm::EventSetup& iSetup, const edm::Event& iEvent, bool debug, double eyr);
+  explicit CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments,const edm::EventSetup& iSetup, const edm::Event& iEvent, bool debug, double MaxD, double eyr);
   ~CSCSegtoRPC();
   RPCRecHitCollection* thePoints(){return _ThePoints;}
    
