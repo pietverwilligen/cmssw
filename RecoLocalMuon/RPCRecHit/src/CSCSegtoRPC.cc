@@ -10,6 +10,7 @@
 #include <DataFormats/RPCRecHit/interface/RPCRecHit.h>
 #include <DataFormats/RPCRecHit/interface/RPCRecHitCollection.h>
 #include <RecoLocalMuon/RPCRecHit/interface/CSCSegtoRPC.h>
+// #include <LocalError.h>
 
 ObjectMapCSC* ObjectMapCSC::mapInstance = NULL;
 
@@ -41,8 +42,8 @@ ObjectMapCSC::ObjectMapCSC(const edm::EventSetup& iSetup){
           int cscstation=station;
 	  RPCGeomServ rpcsrv(rpcId);
 	  int rpcsegment = rpcsrv.segment();
-	  int cscchamber = rpcsegment; //FIX THIS ACCORDING TO RPCGeomServ::segment()Definition
-          if((station==2||station==3)&&ring==3){//Adding Ring 3 of RPC to the CSC Ring 2
+	  int cscchamber = rpcsegment; // FIX THIS ACCORDING TO RPCGeomServ::segment()Definition
+          if((station!=1)&&ring==3){   // Adding Ring 3 of RPC to the CSC Ring 2
             cscring = 2;
           }
 	  CSCStationIndex ind(region,cscstation,cscring,cscchamber);
@@ -56,7 +57,7 @@ ObjectMapCSC::ObjectMapCSC(const edm::EventSetup& iSetup){
   }
 }
   
-CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const edm::EventSetup& iSetup,const edm::Event& iEvent, bool debug, double eyr){
+CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const edm::EventSetup& iSetup,const edm::Event& iEvent, bool debug, double MaxD, double eyr){
   
   edm::ESHandle<RPCGeometry> rpcGeo;
   edm::ESHandle<CSCGeometry> cscGeo;
@@ -64,7 +65,7 @@ CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const
   iSetup.get<MuonGeometryRecord>().get(rpcGeo);
   iSetup.get<MuonGeometryRecord>().get(cscGeo);
   
-  MaxD=80.;
+  // MaxD=80.; we don't like hard coded parameters
 
   if(debug) std::cout<<"CSC \t Number of CSC Segments in this event = "<<allCSCSegments->size()<<std::endl;
 
@@ -89,22 +90,35 @@ CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const
 	
       if(debug) std::cout<<"CSC \t \t This Segment is in Chamber id: "<<CSCId<<std::endl;
       if(debug) std::cout<<"CSC \t \t Number of segments in this CSC = "<<CSCSegmentsCounter[CSCId]<<std::endl;
-      if(debug) std::cout<<"CSC \t \t Is the only one in this CSC? is not ind the ring 1 or station 4? Are there more than 2 segments in the event?"<<std::endl;
+      // if(debug) std::cout<<"CSC \t \t Is the only one in this CSC? is not ind the ring 1 or station 4? Are there more than 2 segments in the event?"<<std::endl;
+      if(debug) std::cout<<"CSC \t \t Is the only one in this CSC? is not ind the ring 1? Are there more than 2 segments in the event?"<<std::endl;
 
-      if(CSCSegmentsCounter[CSCId]==1 && CSCId.station()!=4 && CSCId.ring()!=1 && allCSCSegments->size()>=2){
+      // if(CSCSegmentsCounter[CSCId]==1 && CSCId.station()!=4 && CSCId.ring()!=1 && allCSCSegments->size()>=2){
+      if(CSCSegmentsCounter[CSCId]==1 && CSCId.ring()!=1 && allCSCSegments->size()>=2){
 	if(debug) std::cout<<"CSC \t \t yes"<<std::endl;
 	int cscEndCap = CSCId.endcap();
 	int cscStation = CSCId.station();
 	int cscRing = CSCId.ring();
 	int rpcRegion = 1; if(cscEndCap==2) rpcRegion= -1;//Relacion entre las endcaps
 	int rpcRing = cscRing;
-	if(cscRing==4)rpcRing =1;
+	if(cscRing==4) rpcRing =1; // ME1/1A is ring 4
 	int rpcStation = cscStation;
 	int rpcSegment = CSCId.chamber();
 	
-	LocalPoint segmentPosition= segment->localPosition();
-	LocalVector segmentDirection=segment->localDirection();
+	LocalPoint  segmentPosition      = segment->localPosition();
+	LocalVector segmentDirection     = segment->localDirection();
+	LocalError segmentPositionError  = segment->localPositionError();
+        LocalError segmentDirectionError = segment->localDirectionError();
+
 	float dz=segmentDirection.z();
+
+	float Pos_xx=segmentPositionError.xx();
+        float Pos_xy=segmentPositionError.xy();
+	float Pos_yy=segmentPositionError.yy();
+	float Dir_xx=segmentDirectionError.xx();
+        float Dir_xy=segmentDirectionError.xy();
+        float Dir_yy=segmentDirectionError.yy();
+
 
 	if(debug) std::cout<<"CSC \t \t \t Information about the segment" 
 			   <<"RecHits ="<<segment->nRecHits()
@@ -145,7 +159,8 @@ CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const
 
 	  if(debug) std::cout<<"CSC \t \t Printing The Id"<<TheId<<std::endl;
 
-	  if(rpcRing!=1&&rpcStation!=4){//They don't exist!
+	  // if(rpcRing!=1&&rpcStation!=4){ //They don't exist!
+	  if(rpcRing!=1) { //They don't exist!
 	  
 	    assert(rollsForThisCSC.size()>=1);
 
@@ -160,8 +175,9 @@ CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const
 	      if(debug) std::cout<<"CSC \t \t \t RollID: "<<rpcId<<std::endl;
 		
 	      if(debug) std::cout<<"CSC \t \t \t Doing the extrapolation to this roll"<<std::endl;
-	      if(debug) std::cout<<"CSC \t \t \t CSC Segment Direction in CSCLocal "<<segmentDirection<<std::endl;
-	      if(debug) std::cout<<"CSC \t \t \t CSC Segment Point in CSCLocal "<<segmentPosition<<std::endl;  
+	      if(debug) std::cout<<"CSC \t \t \t CSC Segment Point in CSCLocal "<<segmentPosition<<" with Uncertainties (xx,xy,yy) = ("<<Pos_xx<<","<<Pos_xy<<","<<Pos_yy<<")"<<std::endl;
+	      if(debug) std::cout<<"CSC \t \t \t CSC Segment Direction in CSCLocal "<<segmentDirection<<" with Uncertainties (xx,xy,yy) = ("<<Dir_xx<<","<<Dir_xy<<","<<Dir_yy<<")"<<std::endl;
+
 		
 	      GlobalPoint CenterPointRollGlobal = RPCSurface.toGlobal(LocalPoint(0,0,0));
 	      if(debug) std::cout<<"CSC \t \t \t Center (0,0,0) of the Roll in Global"<<CenterPointRollGlobal<<std::endl;
@@ -256,7 +272,11 @@ CSCSegtoRPC::CSCSegtoRPC(edm::Handle<CSCSegmentCollection> allCSCSegments, const
 				   <<fabs(PointExtrapolatedRPCFrame.y())<<std::endl;
 		  
 		if(debug) std::cout<<"CSC \t \t \t Does the extrapolation go inside this roll????"<<std::endl;
-
+		if(debug) {
+		  std::cout<<"CSC \t \t \t \t |z| = "<<fabs(PointExtrapolatedRPCFrame.z())<<" < 1.0";
+		  std::cout<<" && |x| = "<<fabs(PointExtrapolatedRPCFrame.x())<<" < "<<rsize*eyr;
+		  std::cout<<" && |y| = "<<fabs(PointExtrapolatedRPCFrame.y())<<" < "<<stripl*eyr<<std::endl;
+		}
 		if(fabs(PointExtrapolatedRPCFrame.z()) < 1. && 
 		   fabs(PointExtrapolatedRPCFrame.x()) < rsize*eyr && 
 		   fabs(PointExtrapolatedRPCFrame.y()) < stripl*eyr){ 
