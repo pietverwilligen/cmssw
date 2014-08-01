@@ -9,7 +9,7 @@
 
 class DTSegtoRPC {
 public:
-  explicit DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments,const edm::EventSetup& iSetup, const edm::Event& iEvent,bool debug, double eyr);
+  explicit DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, const edm::EventSetup& iSetup, const edm::Event& iEvent, bool debug, double MinCosAng, double MaxD, double MaxDrb4, double eyr);
   ~DTSegtoRPC();
   RPCRecHitCollection* thePoints(){return _ThePoints;}
    
