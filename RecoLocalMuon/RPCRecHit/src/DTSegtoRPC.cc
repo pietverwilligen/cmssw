@@ -10,6 +10,7 @@
 #include <DataFormats/RPCRecHit/interface/RPCRecHit.h>
 #include <DataFormats/RPCRecHit/interface/RPCRecHitCollection.h>
 #include <RecoLocalMuon/RPCRecHit/interface/DTSegtoRPC.h>
+// #include <LocalError.h>
 #include <ctime>
 
 ObjectMap* ObjectMap::mapInstance = NULL;
@@ -67,28 +68,27 @@ int distwheel(int wheel1,int wheel2){
   return distance;
 }
 
-DTSegtoRPC::DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, const edm::EventSetup& iSetup,const edm::Event& iEvent,bool debug,double eyr){
+DTSegtoRPC::DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, const edm::EventSetup& iSetup, const edm::Event& iEvent, bool debug, double MinCosAng, double MaxD, double MaxDrb4, double eyr){
 
   /*
   MinCosAng=iConfig.getUntrackedParameter<double>("MinCosAng",0.95);
   MaxD=iConfig.getUntrackedParameter<double>("MaxD",80.);
   MaxDrb4=iConfig.getUntrackedParameter<double>("MaxDrb4",150.);
   */
-  incldt=true;
-  incldtMB4=true;
  
   //By now hard coded parameters
+  /*
   MinCosAng=0.85;
   MaxD=80.;
   MaxDrb4=150.;
   MaxDistanceBetweenSegments = 150;
-  /*
+  */
 
-  //These should be always true expect for debuggin porpouses
+  // These should be always true expect for debuggin porpouses
   incldt=true;
   incldtMB4=true;
 
-  
+  /*  
     struct timespec start_time, stop_time;
     time_t fs;
     time_t fn;
@@ -154,8 +154,10 @@ DTSegtoRPC::DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, cons
 	int dtStation = DTId.station();
 	int dtSector = DTId.sector();      
       
-	LocalPoint segmentPosition= segment->localPosition();
-	LocalVector segmentDirection=segment->localDirection();
+	LocalPoint  segmentPosition      = segment->localPosition();
+	LocalVector segmentDirection     = segment->localDirection();
+	LocalError segmentPositionError  = segment->localPositionError();
+	LocalError segmentDirectionError = segment->localDirectionError();
       
 	const GeomDet* gdet=dtGeo->idToDet(segment->geographicalId());
 	const BoundPlane & DTSurface = gdet->surface();
@@ -178,7 +180,15 @@ DTSegtoRPC::DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, cons
 	float dx=segmentDirection.x();
 	float dy=segmentDirection.y();
 	float dz=segmentDirection.z();
+
+	float Pos_xx=segmentPositionError.xx();
+	float Pos_xy=segmentPositionError.xy();
+	float Pos_yy=segmentPositionError.yy();
+	float Dir_xx=segmentDirectionError.xx();
+	float Dir_xy=segmentDirectionError.xy();
+	float Dir_yy=segmentDirectionError.yy();
       
+
 	if(debug)  std::cout<<"Calling to Object Map class"<<std::endl;
 	ObjectMap* TheObject = ObjectMap::GetInstance(iSetup);
 	if(debug) std::cout<<"Creating the DTIndex"<<std::endl;
@@ -202,8 +212,8 @@ DTSegtoRPC::DTSegtoRPC(edm::Handle<DTRecSegment4DCollection> all4DSegments, cons
 	
 	  if(debug) std::cout<<"DT  \t \t \t RollName: "<<nameRoll<<std::endl;
 	  if(debug) std::cout<<"DT  \t \t \t Doing the extrapolation to this roll"<<std::endl;
-	  if(debug) std::cout<<"DT  \t \t \t DT Segment Direction in DTLocal "<<segmentDirection<<std::endl;
-	  if(debug) std::cout<<"DT  \t \t \t DT Segment Point in DTLocal "<<segmentPosition<<std::endl;
+	  if(debug) std::cout<<"DT  \t \t \t DT Segment Direction in DTLocal "<<segmentDirection<<" with Uncertainties (xx,xy,yy) = ("<<Pos_xx<<","<<Pos_xy<<","<<Pos_yy<<")"<<std::endl;
+	  if(debug) std::cout<<"DT  \t \t \t DT Segment Point in DTLocal "<<segmentPosition<<" with Uncertainties (xx,xy,yy) = ("<<Dir_xx<<","<<Dir_xy<<","<<Dir_yy<<")"<<std::endl;
 	
 	  GlobalPoint CenterPointRollGlobal = RPCSurface.toGlobal(LocalPoint(0,0,0));
 	
