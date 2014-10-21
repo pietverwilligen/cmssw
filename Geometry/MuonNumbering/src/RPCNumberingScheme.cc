@@ -4,7 +4,7 @@
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include <iostream>
 
-//#define LOCAL_DEBUG
+#define LOCAL_DEBUG
 
 RPCNumberingScheme::RPCNumberingScheme( const MuonDDDConstants& muonConstants ) {
   initMe(muonConstants);
@@ -56,12 +56,14 @@ int RPCNumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
     maxLevel=theERollLevel;
   }
 
+  ///*
   if (num.getLevels()!=maxLevel) {
     std::cout << "MuonRpcNS::BNToUN "
 	 << "BaseNumber has " << num.getLevels() << " levels,"
 	 << "need "<<maxLevel<<std::endl;
     return 0;
   }
+  //*/
 
   int plane_id=0;
   int sector_id=0;
@@ -195,9 +197,7 @@ int RPCNumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
   }      
 
   // collect all info
-  
-  int trIndex=(eta_id*10000+plane_id*1000+sector_id*10+copy_id)*10+
-    roll_id;
+  int trIndex=(eta_id*10000+plane_id*1000+sector_id*10+copy_id)*10+roll_id;
   
 #ifdef LOCAL_DEBUG
   if (barrel_muon) {
@@ -223,7 +223,7 @@ int RPCNumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
   
   
 #ifdef LOCAL_DEBUG
-  std::cout << " DetId " << id;  
+  std::cout << " DetId " << id << " Raw DetId " << id.rawId();  
   std::cout << std::endl;
 #endif
       
