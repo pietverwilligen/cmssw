@@ -289,6 +289,7 @@ RPCGEO::analyze(const edm::Event& /*iEvent*/, const edm::EventSetup& iSetup)
 
 	   bool ok = false;
 	   if(rpcId.station()==1) {
+	     if(rpcId.ring()==1             && orientation*rpcId.region()== 1.0) {ok=true;}
 	     if(rpcId.ring()==2 && seg%2!=0 && orientation*rpcId.region()== 1.0) {ok=true;}
 	     if(rpcId.ring()==2 && seg%2==0 && orientation*rpcId.region()==-1.0) {ok=true;}
 	     if(rpcId.ring()==3             && orientation*rpcId.region()== 1.0) {ok=true;}
