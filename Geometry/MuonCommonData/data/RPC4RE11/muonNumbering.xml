@@ -220,6 +220,7 @@
    <Parameter name="CopyNoOffset" value="3*[super]"/>
   </SpecPar>
   <SpecPar name="MuonRpcEndcap1">
+   <PartSelector path="//RR11"/> <!-- RE1/1 staged volumes -->  
    <PartSelector path="//RR12"/>
    <PartSelector path="//RR12N"/>
    <PartSelector path="//RR13"/>
@@ -270,6 +271,7 @@
    <SpecPar name="MuonRpcEndcapChamberA4">             
      <PartSelector path="//REA4" />                      
      <Parameter name="CopyNoTag" value="[mr_eroll]"/>
+     <Parameter name="CopyNoOffset" value="1*[super]+3"/>
    </SpecPar>
   <!-- RE1/1 staged volumes -->
   <SpecPar name="MuonRpcEndcapChamberB1">
