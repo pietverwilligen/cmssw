@@ -4,7 +4,7 @@
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include <iostream>
 
-#define LOCAL_DEBUG
+// #define LOCAL_DEBUG
 
 RPCNumberingScheme::RPCNumberingScheme( const MuonDDDConstants& muonConstants ) {
   initMe(muonConstants);
