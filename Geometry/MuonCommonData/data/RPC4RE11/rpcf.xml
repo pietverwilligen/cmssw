@@ -264,6 +264,17 @@
        no algorithm, just manually adding 4 chambers 
        (4x Free Space, in which the chambers are contained)
        but it works --> 
+  <!-- one comment though ... 
+       numbering of rolls is CH02-CH05
+       with CH02 starting at phi = 0. 
+       It should be CH01-CH04 
+       and CH01 starting at phi = 0 -->
+  <!-- Rotations R005, R015, R025, R035 results in 
+       chambers 02-05 with phi value 10, 20, 30, 40
+       Rotations R355, R005, R015, R025 results in 
+       chambers 02-05 with phi value 0, 10, 20, 30
+       So rotations are correct, 
+       numbering is strange and does not depend on rotation--> 
   <PosPart copyNumber="1">                         
     <rParent name="rpcf:RR11"/>              
     <rChild name="rpcf:RT1A"/>               
