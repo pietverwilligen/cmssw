@@ -267,25 +267,25 @@
   <PosPart copyNumber="1">                         
     <rParent name="rpcf:RR11"/>              
     <rChild name="rpcf:RT1A"/>               
-    <rRotation name="rotations:R005"/>
+    <rRotation name="rotations:R355"/>
     <Translation x="0*fm " y="0*fm " z="-2.2*cm " />
   </PosPart>                                           
   <PosPart copyNumber="2">                        
     <rParent name="rpcf:RR11"/>             
     <rChild name="rpcf:RT1A"/>              
-    <rRotation name="rotations:R015"/>              
+    <rRotation name="rotations:R005"/>              
     <Translation x="0*fm " y="0*fm " z="2.2*cm " /> 
   </PosPart>              
   <PosPart copyNumber="3">
     <rParent name="rpcf:RR11"/>
     <rChild name="rpcf:RT1A"/> 
-    <rRotation name="rotations:R025"/> 
+    <rRotation name="rotations:R015"/> 
     <Translation x="0*fm " y="0*fm " z="-2.2*cm " /> 
   </PosPart>                                            
   <PosPart copyNumber="4">                         
     <rParent name="rpcf:RR11"/>              
     <rChild name="rpcf:RT1A"/>               
-    <rRotation name="rotations:R035"/>               
+    <rRotation name="rotations:R025"/>               
     <Translation x="0*fm " y="0*fm " z="2.2*cm " />
   </PosPart>
  <!-- RE1/1 stage volumes :: old style -->
