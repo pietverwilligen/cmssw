@@ -275,6 +275,7 @@
        chambers 02-05 with phi value 0, 10, 20, 30
        So rotations are correct, 
        numbering is strange and does not depend on rotation--> 
+  <!--
   <PosPart copyNumber="1">                         
     <rParent name="rpcf:RR11"/>              
     <rChild name="rpcf:RT1A"/>               
@@ -299,6 +300,7 @@
     <rRotation name="rotations:R025"/>               
     <Translation x="0*fm " y="0*fm " z="2.2*cm " />
   </PosPart>
+ -->
  <!-- RE1/1 stage volumes :: old style -->
  <!-- RE1/1 stage volumes :: new style 
       <Division name="RT1A" parent="RR11" axis="phi" offset="-5*deg" width="10*deg"/> 
@@ -566,9 +568,9 @@
        RE4/1 staged volumes -->
 </PosPartSection>
 
- <!-- RE1/1 stage volumes :: new style
-      with algorithm, but I did not get it to work
-      to copy only 4 chambers, instead it copies 36 chambers
+<!-- RE1/1 stage volumes :: new style
+     with algorithm, but I did not get it to work
+     to copy only 4 chambers, instead it copies 36 chambers -->
 <Algorithm name="muon:DDMuonAngular">
     <rParent name="rpcf:RR11"/>
     <String name="ChildName" value="RT1A"/>
@@ -591,7 +593,7 @@
     <Numeric name="startAngle"  value="15*deg"/>
     <Numeric name="zoffset"     value="2.2*cm"/>
 </Algorithm>
-     RE1/1 stage volumes -->
+<!-- RE1/1 stage volumes -->
 <Algorithm name="muon:DDMuonAngular">
     <rParent name="rpcf:RR13"/>
     <String name="ChildName" value="RT1C"/>
