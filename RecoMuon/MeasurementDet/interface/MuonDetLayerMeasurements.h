@@ -20,6 +20,7 @@
 #include "DataFormats/CSCRecHit/interface/CSCSegmentCollection.h"
 #include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
 #include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
+#include "DataFormats/GEMRecHit/interface/GEMCSCSegmentCollection.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include <vector>
@@ -42,10 +43,12 @@ class MuonDetLayerMeasurements {
 			   edm::InputTag csclabel,
 			   edm::InputTag rpclabel,
 			   edm::InputTag gemlabel,
+		           edm::InputTag gemcsclabel,
 			   bool enableDT = true,
 			   bool enableCSC = true,
 			   bool enableRPC = true,
-			   bool enableGEM = true);
+               		   bool enableGEM = true,
+               		   bool enableGEMCSC = true);
   
   virtual ~MuonDetLayerMeasurements();
   
@@ -124,18 +127,21 @@ class MuonDetLayerMeasurements {
   edm::InputTag theCSCRecHitLabel;
   edm::InputTag theRPCRecHitLabel;
   edm::InputTag theGEMRecHitLabel;
-
+  edm::InputTag theGEMCSCRecHitLabel;
+    
   bool enableDTMeasurement;
   bool enableCSCMeasurement;
   bool enableRPCMeasurement;
   bool enableGEMMeasurement;
-  
+  bool enableGEMCSCMeasurement;
+    
   // caches that should get filled once per event
   edm::Handle<DTRecSegment4DCollection> theDTRecHits;
   edm::Handle<CSCSegmentCollection>     theCSCRecHits;
   edm::Handle<RPCRecHitCollection>      theRPCRecHits;
   edm::Handle<GEMRecHitCollection>      theGEMRecHits;
-
+  edm::Handle<GEMCSCSegmentCollection>      theGEMCSCRecHits;
+    
   void checkDTRecHits();
   void checkCSCRecHits();
   void checkRPCRecHits();

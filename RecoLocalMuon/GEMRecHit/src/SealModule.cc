@@ -23,3 +23,11 @@ DEFINE_EDM_PLUGIN (ME0RecHitAlgoFactory, ME0RecHitStandardAlgo, "ME0RecHitStanda
 #include <RecoLocalMuon/GEMRecHit/src/ME0SegAlgoMM.h>
 DEFINE_FWK_MODULE(ME0SegmentProducer);
 DEFINE_EDM_PLUGIN(ME0SegmentBuilderPluginFactory, ME0SegAlgoMM, "ME0SegAlgoMM");
+
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegmentProducer.h>
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegmentBuilderPluginFactory.h>
+
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegAlgoRR.h>
+DEFINE_FWK_MODULE(GEMCSCSegmentProducer);
+DEFINE_EDM_PLUGIN(GEMCSCSegmentBuilderPluginFactory, GEMCSCSegAlgoRR, "GEMCSCSegAlgoRR");
+

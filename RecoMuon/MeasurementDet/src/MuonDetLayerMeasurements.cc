@@ -26,19 +26,23 @@ MuonDetLayerMeasurements::MuonDetLayerMeasurements(edm::InputTag dtlabel,
 						   edm::InputTag csclabel, 
 						   edm::InputTag rpclabel,
 						   edm::InputTag gemlabel,
-						   bool enableDT, bool enableCSC, bool enableRPC, bool enableGEM): 
+                           edm::InputTag gemcsclabel,
+						   bool enableDT, bool enableCSC, bool enableRPC, bool enableGEM, bool enableGEMCSC):
   theDTRecHitLabel(dtlabel),
   theCSCRecHitLabel(csclabel),
   theRPCRecHitLabel(rpclabel),
   theGEMRecHitLabel(gemlabel),
+  theGEMCSCRecHitLabel(gemcsclabel),
   enableDTMeasurement(enableDT),
   enableCSCMeasurement(enableCSC),
   enableRPCMeasurement(enableRPC),
   enableGEMMeasurement(enableGEM),
+  enableGEMCSCMeasurement(enableGEMCSC),
   theDTRecHits(),
   theCSCRecHits(),
   theRPCRecHits(),
   theGEMRecHits(),
+  theGEMCSCRecHits(),
   theDTEventID(),
   theCSCEventID(),
   theRPCEventID(),
@@ -89,7 +93,7 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet,
   }
   
   else if (geoId.subdetId()  == MuonSubdetId::CSC) {
-    if(enableCSCMeasurement)
+    if(enableCSCMeasurement || enableGEMCSCMeasurement)
     {
       checkCSCRecHits();
 
@@ -98,12 +102,23 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet,
       //    LogTrace("Muon|RecoMuon|MuonDetLayerMeasurements") << "(CSC): "<<chamberId<<std::endl;
 
       // Get the CSC-Segment which relies on this chamber
+        if(enableGEMCSCMeasurement){
+            GEMCSCSegmentCollection::range range = theGEMCSCRecHits->get(chamberId);
+            
+            // Create the MuonTransientTrackingRecHit
+            for (GEMCSCSegmentCollection::const_iterator rechit = range.first;
+                 rechit!=range.second; ++rechit)
+            result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet,&*rechit)); }
+        
+        else if(enableCSCMeasurement){
       CSCSegmentCollection::range range = theCSCRecHits->get(chamberId);
     
       // Create the MuonTransientTrackingRecHit
       for (CSCSegmentCollection::const_iterator rechit = range.first; 
            rechit!=range.second; ++rechit)
-        result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet,&*rechit)); 
+            result.push_back(MuonTransientTrackingRecHit::specificBuild(geomDet,&*rechit)); }
+        
+     
     }
   }
   
@@ -126,7 +141,7 @@ MuonRecHitContainer MuonDetLayerMeasurements::recHits(const GeomDet* geomDet,
     }
   }
   else if (geoId.subdetId()  == MuonSubdetId::GEM) {
-    if(enableGEMMeasurement)
+    if(enableGEMMeasurement && !(enableGEMCSCMeasurement))
     {
       checkGEMRecHits(); 
 
@@ -174,11 +189,24 @@ void MuonDetLayerMeasurements::checkCSCRecHits()
 
   {
     theCSCEventID = theEvent->id();
-    theEvent->getByLabel(theCSCRecHitLabel, theCSCRecHits);
+    if(enableGEMCSCMeasurement){
+        theEvent->getByLabel(theGEMCSCRecHitLabel, theGEMCSCRecHits);
+    }
+    else if(enableCSCMeasurement){
+        theEvent->getByLabel(theCSCRecHitLabel, theCSCRecHits);
+    }
   }
-  if(!theCSCRecHits.isValid())
-  {
-    throw cms::Exception("MuonDetLayerMeasurements") << "Cannot get CSC RecHits";
+  if(enableGEMCSCMeasurement){
+      if(!theGEMCSCRecHits.isValid())
+      {
+          throw cms::Exception("MuonDetLayerMeasurements") << "Cannot get GEMCSC RecHits";
+      }
+  }
+  else if(enableCSCMeasurement){
+        if(!theCSCRecHits.isValid())
+        {
+            throw cms::Exception("MuonDetLayerMeasurements") << "Cannot get CSC RecHits";
+        }
   }
 }
 

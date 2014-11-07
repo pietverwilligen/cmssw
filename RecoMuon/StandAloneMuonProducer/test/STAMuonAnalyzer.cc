@@ -30,6 +30,10 @@
 
 #include <DataFormats/GEMRecHit/interface/GEMRecHit.h>
 #include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
+#include <DataFormats/GEMRecHit/interface/GEMCSCSegment.h>
+#include "DataFormats/GEMRecHit/interface/GEMCSCSegmentCollection.h"
+#include <DataFormats/RPCRecHit/interface/RPCRecHit.h>
+#include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
 #include "DataFormats/CSCRecHit/interface/CSCRecHit2D.h"
 #include "DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
@@ -846,6 +850,55 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		for(trackingRecHit_iterator recHit = staTrack->recHitsBegin(); recHit != staTrack->recHitsEnd(); ++recHit){
 
 			if (!((*recHit)->geographicalId().det() == DetId::Muon)) continue;
+            
+            /*if ((*recHit)->geographicalId().subdetId() == MuonSubdetId::RPC){
+                
+				std::cout<<"RPC found"<<std::endl;
+                
+  				RPCDetId id((*recHit)->geographicalId());
+                
+  				int region = id.region();
+  				//int layer = id.layer();
+  				int station = id.station();
+  				int ring = id.ring();
+  				//int chamber = id.chamber();
+  				//int roll = id.roll();
+                
+				std::cout<<"RPC Region"<<region<<" Station "<<station<<" ring "<<ring<<std::endl;
+                
+			}
+			else if ((*recHit)->geographicalId().subdetId() == MuonSubdetId::GEM){
+                
+				std::cout<<"GEM found"<<std::endl;
+                
+  				GEMDetId id((*recHit)->geographicalId());
+                
+  				int region = id.region();
+  				//int layer = id.layer();
+  				int station = id.station();
+  				int ring = id.ring();
+  				//int chamber = id.chamber();
+  				//int roll = id.roll();
+                
+				std::cout<<"GEM Region"<<region<<" Station "<<station<<" ring "<<ring<<std::endl;
+                
+			}
+			else if ((*recHit)->geographicalId().subdetId() == MuonSubdetId::CSC){
+                
+				std::cout<<"CSC found"<<std::endl;
+                
+  				CSCDetId id((*recHit)->geographicalId());
+                
+  				int region = id.endcap();
+  				//int layer = id.layer();
+  				int station = id.station();
+  				int ring = id.ring();
+  				//int chamber = id.chamber();
+  				//int roll = id.roll();
+                
+				std::cout<<"CSC Region"<<region<<" Station "<<station<<" ring "<<ring<<std::endl;
+                
+			}*/
 
 			if ((*recHit)->geographicalId().subdetId() == MuonSubdetId::GEM){
 
