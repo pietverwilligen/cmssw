@@ -76,8 +76,10 @@ def customise_RawToDigi(process):
     return process
 
 def customise_Reco(process):
-    process.load('RecoLocalMuon.GEMRecHit.gemRecHits_cfi')
+    process.load('RecoLocalMuon.GEMRecHit.gemRecHits_cfi') 
+    process.load('RecoLocalMuon.GEMRecHit.gemcscSegments_cfi') # piet 20141107
     process.muonlocalreco += process.gemRecHits
+    process.muonlocalreco += process.gemcscSegments            # piet 20141107
     process.standAloneMuons.STATrajBuilderParameters.EnableGEMMeasurement = cms.bool(True)
     process.standAloneMuons.STATrajBuilderParameters.BWFilterParameters.EnableGEMMeasurement = cms.bool(True)
     process.refittedStandAloneMuons.STATrajBuilderParameters.EnableGEMMeasurement = cms.bool(True)
@@ -111,6 +113,7 @@ def outputCustoms(process):
             getattr(process,b).outputCommands.append('keep *_simMuonGEMDigis_*_*')
             getattr(process,b).outputCommands.append('keep *_simMuonGEMCSCPadDigis_*_*')
             getattr(process,b).outputCommands.append('keep *_gemRecHits_*_*')
+            getattr(process,b).outputCommands.append('keep *_gemcscSegments_*_*') # piet 20141107
     return process
 
     
