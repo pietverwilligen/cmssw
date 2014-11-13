@@ -85,6 +85,7 @@ class TestGEMCSCSegmentAnalyzer : public edm::EDAnalyzer {
     edm::ESHandle<GEMGeometry> gemGeom;
     edm::ESHandle<CSCGeometry> cscGeom;
     
+  bool debug;
 
   std::string rootFileName;
   TFile * outputfile;
@@ -343,6 +344,7 @@ TestGEMCSCSegmentAnalyzer::TestGEMCSCSegmentAnalyzer(const edm::ParameterSet& iC
 
 {
    //now do what ever initialization is needed
+  debug         = iConfig.getUntrackedParameter<bool>("Debug");
   rootFileName  = iConfig.getUntrackedParameter<std::string>("RootFileName");
 
   outputfile = new TFile(rootFileName.c_str(), "RECREATE" );
@@ -961,8 +963,32 @@ for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
     for (auto gemcscs = gemcscSegment->begin(); gemcscs != gemcscSegment->end(); gemcscs++) {
 
       auto gemrhs_if = gemcscs->gemRecHits();
-      //if(gemrhs_if.size()==0)continue;
-      if(gemrhs_if.size()!=0)continue;
+      if(gemrhs_if.size()==0) continue;
+      // if(gemrhs_if.size()!=0) continue;
+
+      // --- some printout for debug -----------------------------------------------------------------------------------------------------------------------------------
+      if(debug) {
+	std::cout<<"GEM-CSC Segment with "<<gemcscs->gemRecHits().size()<<" GEM rechits and "<<gemcscs->cscSegment().specificRecHits().size()<<" CSC rechits"<<std::endl;
+	auto gemrhs = gemcscs->gemRecHits();
+	for (auto rh = gemrhs.begin(); rh!= gemrhs.end(); rh++){
+	  GEMDetId gemId((*rh).geographicalId());
+	  const GEMEtaPartition* id_etapart = gemGeom->etaPartition(gemId);
+	  const BoundPlane & GEMSurface = id_etapart->surface();
+	  GlobalPoint GEMGlobalPoint = GEMSurface.toGlobal((*rh).localPosition());
+	  std::cout<<"GEM Rechit in "<<gemId<<" = "<<gemId.rawId()<<" at X = "<<GEMGlobalPoint.x()<<" Y = "<<GEMGlobalPoint.y()<<" Z = "<<GEMGlobalPoint.z()<<std::endl;
+	}
+	CSCSegment cscSeg = gemcscs->cscSegment();
+	auto cscrhs = cscSeg.specificRecHits();
+	for (auto rh = cscrhs.begin(); rh!= cscrhs.end(); rh++){
+	  CSCDetId cscId = (CSCDetId)(*rh).cscDetId();
+	  GlobalPoint CSCGlobalPoint = cscGeom->idToDet(cscId)->toGlobal((*rh).localPosition());
+	  std::cout<<"CSC Rechit in "<<cscId<<" = "<<cscId.rawId()<<" at X = "<<CSCGlobalPoint.x()<<" Y = "<<CSCGlobalPoint.y()<<" Z = "<<CSCGlobalPoint.z()<<std::endl;
+	}
+      }
+      // --- some printout for debug -----------------------------------------------------------------------------------------------------------------------------------
+
+
+
         
         ///////// GEMCSC seg //////////////////////////////////////
         CSCDetId gemcscId = gemcscs->cscDetId();
