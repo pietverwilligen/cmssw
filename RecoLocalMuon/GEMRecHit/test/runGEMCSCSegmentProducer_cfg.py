@@ -18,7 +18,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(-1)
 )
 
 process.options = cms.untracked.PSet(
@@ -33,10 +33,10 @@ process.load('RecoLocalMuon.GEMRecHit.gemcscSegments_cfi')
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
                                       #'file:/lustre/cms/store/user/radogna/GEMCSCSegment/NoNoise/out_digireco100_10000.root',
-                                      'file:/lustre/cms/store/user/radogna/GEMCSCSegment/out_reco10_paranormal.root',
+                                      #'file:/lustre/cms/store/user/radogna/GEMCSCSegment/out_reco10_paranormal.root',
                                       #'file:/lustre/cms/store/user/radogna/GEMCSCSegment/NoNoise/out_digireco10_xcommit.root',
                                       #'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt10_GEN-SIM-DIGI-RECO_CMSSW_6_2_0_SLHC9_8EtaPar_LXPLUS_DIGIv7_GeomV5_TeVMuon_v2/calabria_SingleMuPt10_GEN-SIM-DIGI-RECO_CMSSW_6_2_0_SLHC9_8EtaPar_LXPLUS_DIGIv7_GeomV5_TeVMuon_v2/387588dc8e1633241b2179741cba1455/out_reco_100_2_ztF.root',
-                                    
+                                      'file:out_reco10_paranormal.root',
    
 
     )
@@ -44,7 +44,8 @@ process.source = cms.Source("PoolSource",
 
 process.output = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string(
-        'file:/lustre/cms/store/user/radogna/GEMCSCSegment/FullDigi_withNewSSegm/out_rec_gemcsc.test10_xcommit.root'
+        # 'file:/lustre/cms/store/user/radogna/GEMCSCSegment/FullDigi_withNewSSegm/out_rec_gemcsc.test10_xcommit.root'
+        'file:out_rec_gemcsc.test10_xcommit.root'
     ),
     outputCommands = cms.untracked.vstring(
         'keep  *_*_*_*',
