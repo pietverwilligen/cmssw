@@ -73,38 +73,77 @@ void GEMCSCSegmentBuilder::build(const GEMRecHitCollection* recHits, const CSCSe
 for(CSCSegmentCollection::const_iterator segm = cscsegments->begin(); segm != cscsegments->end(); segm++) {   
     CSCDetId CSCId = segm->cscDetId();
     
-    if(CSCId.station()==1 && CSCId.ring()==1 ){
+    // Search for Matches between GEM Roll and CSC Chamber
+    if(CSCId.station()==1 && (CSCId.ring()==1 || CSCId.ring()==4)) {   // ring=1 ==> ME1/1b; ring=4 ==> ME1/1a
 
         std::vector<const CSCSegment* > ss = ensembleS[CSCId.rawId()];
         ss.push_back(segm->clone());
         ensembleS[CSCId.rawId()]=ss;
     
-        int cscEndCap = CSCId.endcap();
+        int cscRegion = CSCId.endcap();
+        int gemRegion = 1; if(cscRegion==2) gemRegion= -1; // +/- Endcaps :: CSC Endcaps are numbered 1,2; GEM Endcaps are numbered +1, -1
+	// int cscRing = CSCId.ring();
+	int gemRing = 1;                                   // this we can hardcode, only GEMs in Ring 1
         int cscStation = CSCId.station();
-        int cscRing = CSCId.ring();
-        int gemRegion = 1; if(cscEndCap==2) gemRegion= -1;//Relacion entre las endcaps
-        int gemRing = cscRing;
-        //if(cscRing==4)gemRing =1; ////csc ring=4 è me1A, mentre ring 1 è me1B, gemring=1
         int gemStation = cscStation;
-        int gemChamber = CSCId.chamber();
+	int cscChamber = CSCId.chamber();
+        // int gemChamber = cscChamber;
+	// Continue cleanup and printout from here
         ObjectMapCSC* TheObjectCSC = ObjectMapCSC::GetInstance(setup);
-        CSCStationIndex theindex(gemRegion,gemStation,gemRing,gemChamber,1);// n rolls in layer1 == n rolls in layer 2
-        std::set<GEMDetId> rollsForThisCSC = TheObjectCSC->GetInstance(setup)->GetRolls(theindex);
-        
-        for(GEMRecHitCollection::const_iterator it2 = recHits->begin(); it2 != recHits->end(); it2++) {
-        for (std::set<GEMDetId>::iterator iteraRoll = rollsForThisCSC.begin();iteraRoll != rollsForThisCSC.end(); iteraRoll++){
-           const GEMEtaPartition* rollasociated = gemGeo->etaPartition(*iteraRoll);
-           GEMDetId gemIdfromSegm = rollasociated->id();
-           if(it2->gemId().roll()== gemIdfromSegm.roll() && it2->gemId().chamber()==CSCId.chamber() && ((it2->gemId().region()==1 && CSCId.endcap()==1 )||(it2->gemId().region()==-1 && CSCId.endcap()==2 ))){ //NEW match chamber && endcap
-               
-               std::vector<GEMRecHit* > pp = ensembleRH[CSCId.rawId()];
-               pp.push_back(it2->clone());
-               ensembleRH[CSCId.rawId()]=pp;
-		
-    	}
-    }// for roll of the segment
-  }// for rec hits
-  }// if ME1/1b
+        // CSCStationIndex theindex(gemRegion,gemStation,gemRing,gemChamber,1); // n rolls in layer1 == n rolls in layer 2
+
+	// check gemRegion = 1 and gemRegion = -1 ==> dont we have to use CSCRegion ??? ==> no, it is ok!
+	/*
+	CSCStationIndex theindex0(-1,gemStation,gemRing,gemChamber,1);  std::set<GEMDetId> rollsForThisCSC0 = TheObjectCSC->GetInstance(setup)->GetRolls(theindex0);        
+	CSCStationIndex theindex1(+1,gemStation,gemRing,gemChamber,1);  std::set<GEMDetId> rollsForThisCSC1 = TheObjectCSC->GetInstance(setup)->GetRolls(theindex1);        
+	CSCStationIndex theindex2(+2,gemStation,gemRing,gemChamber,1);  std::set<GEMDetId> rollsForThisCSC2 = TheObjectCSC->GetInstance(setup)->GetRolls(theindex2);        
+	std::cout<<"Test CSC Index :: re:"<<-1<<" st:"<<gemStation<<" ri:"<<gemRing<<" ch:"<<gemChamber<<" index = "<<&theindex0; 
+	for (std::set<GEMDetId>::iterator iteraRoll = rollsForThisCSC0.begin();iteraRoll != rollsForThisCSC0.end(); ++iteraRoll){ std::cout<<" id: "<<*iteraRoll; } std::cout<<""<<std::endl;
+	std::cout<<"Test CSC Index :: re:"<<+1<<" st:"<<gemStation<<" ri:"<<gemRing<<" ch:"<<gemChamber<<" index = "<<&theindex1;
+	for (std::set<GEMDetId>::iterator iteraRoll = rollsForThisCSC1.begin();iteraRoll != rollsForThisCSC1.end(); ++iteraRoll){ std::cout<<" id: "<<*iteraRoll; } std::cout<<""<<std::endl;
+	std::cout<<"Test CSC Index :: re:"<<+2<<" st:"<<gemStation<<" ri:"<<gemRing<<" ch:"<<gemChamber<<" index = "<<&theindex2;
+	for (std::set<GEMDetId>::iterator iteraRoll = rollsForThisCSC2.begin();iteraRoll != rollsForThisCSC2.end(); ++iteraRoll){ std::cout<<" id: "<<*iteraRoll; } std::cout<<""<<std::endl;
+	/*/
+
+	int gem1stChamber = cscChamber;
+	int gem2ndChamber = gem1stChamber+1; if(gem2ndChamber>36) gem2ndChamber-=36;
+	int gem3rdChamber = gem1stChamber-1; if(gem2ndChamber<1)  gem2ndChamber+=36;
+
+	// Make something smart that you are also looking for hits in overlap region
+        CSCStationIndex index11(gemRegion,gemStation,gemRing,gem1stChamber,1);         CSCStationIndex index12(gemRegion,gemStation,gemRing,gem1stChamber,2); 
+        CSCStationIndex index21(gemRegion,gemStation,gemRing,gem2ndChamber,1);         CSCStationIndex index22(gemRegion,gemStation,gemRing,gem2ndChamber,2); 
+        CSCStationIndex index31(gemRegion,gemStation,gemRing,gem3rdChamber,1);         CSCStationIndex index32(gemRegion,gemStation,gemRing,gem3rdChamber,2); 
+	std::vector<CSCStationIndex> indexvector; indexvector.push_back(index11); indexvector.push_back(index12); indexvector.push_back(index21); indexvector.push_back(index22); indexvector.push_back(index31); indexvector.push_back(index32); 
+
+        // std::set<GEMDetId> rollsForThisCSC = TheObjectCSC->GetInstance(setup)->GetRolls(theindex);        
+	std::vector<GEMDetId> rollsForThisCSCvector; 
+	for(unsigned int i=0; i<indexvector.size(); ++i) {
+	  std::set<GEMDetId> rollsForThisCSC = TheObjectCSC->GetInstance(setup)->GetRolls(indexvector[i]);
+	  for (std::set<GEMDetId>::iterator itRoll = rollsForThisCSC.begin();itRoll != rollsForThisCSC.end(); ++itRoll){rollsForThisCSCvector.push_back(*itRoll);}
+	}
+
+
+	// Loop over GEM Rechits
+        for(GEMRecHitCollection::const_iterator it2 = recHits->begin(); it2 != recHits->end(); ++it2) {
+
+	  // Loop over GEM rolls being pointed by a CSC segment and look for a match
+	  // for (std::set<GEMDetId>::iterator iteraRoll = rollsForThisCSC.begin();iteraRoll != rollsForThisCSC.end(); ++iteraRoll){
+	  for (std::vector<GEMDetId>::iterator iteraRoll = rollsForThisCSCvector.begin();iteraRoll != rollsForThisCSCvector.end(); ++iteraRoll){
+	    const GEMEtaPartition* rollasociated = gemGeo->etaPartition(*iteraRoll);
+	    GEMDetId gemIdfromSegm = rollasociated->id();
+
+	    // GEMDetId gemIdfromCSC(*iteraRoll);
+	    // std::cout<<"GEM Id :: "<<gemIdfromCSC<<" with RawId: "<<gemIdfromCSC.rawId()<<std::endl;
+	    // if(it2->gemId().roll()== gemIdfromSegm.roll() && it2->gemId().chamber()==CSCId.chamber() && ((it2->gemId().region()==1 && CSCId.endcap()==1 )||(it2->gemId().region()==-1 && CSCId.endcap()==2 ))){ //NEW match chamber && endcap
+	    if(it2->gemId().rawId() == gemIdfromSegm.rawId()) { 
+	      std::vector<GEMRecHit* > pp = ensembleRH[CSCId.rawId()];
+	      pp.push_back(it2->clone());
+	      ensembleRH[CSCId.rawId()]=pp;
+	      std::cout<<"GEM Rechit in "<<it2->gemId()<< "["<<it2->gemId().rawId()<<"] added to CSC segment found in "<<CSCId<<" ["<<CSCId.rawId()<<"]"<<std::endl;	      
+	    }
+	  }// for roll of the segment
+	}// for rec hits
+    }// if ME1/1b
     
   else if(!(CSCId.station()==1 && CSCId.ring()==1 )) {
       std::vector<const CSCSegment* > ss_noME1b = ensembleS_noME1b[CSCId.rawId()];
