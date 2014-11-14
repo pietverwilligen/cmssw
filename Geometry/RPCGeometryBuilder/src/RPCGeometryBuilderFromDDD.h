@@ -12,6 +12,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <boost/shared_ptr.hpp>
 
 class DDCompactView;
 class DDFilteredView;
@@ -28,11 +29,13 @@ class RPCGeometryBuilderFromDDD
 
   ~RPCGeometryBuilderFromDDD();
 
-  RPCGeometry* build(const DDCompactView* cview, const MuonDDDConstants& muonConstants);
+  // RPCGeometry* build(const DDCompactView* cview, const MuonDDDConstants& muonConstants);
+  boost::shared_ptr<RPCGeometry> build(const DDCompactView* cview, const MuonDDDConstants& muonConstants);
 
 
  private:
-  RPCGeometry* buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants);
+  // RPCGeometry* buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants);
+  boost::shared_ptr<RPCGeometry> buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants);
   std::map<RPCDetId,std::list<RPCRoll *> > chids;
 
   bool theComp11Flag;
