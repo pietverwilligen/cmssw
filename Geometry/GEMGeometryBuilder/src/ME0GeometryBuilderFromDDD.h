@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 class DDCompactView;
 class DDFilteredView;
@@ -27,10 +28,10 @@ class ME0GeometryBuilderFromDDD
 
   ~ME0GeometryBuilderFromDDD();
 
-  ME0Geometry* build(const DDCompactView* cview, const MuonDDDConstants& muonConstants);
+  boost::shared_ptr<ME0Geometry> build(const DDCompactView* cview, const MuonDDDConstants& muonConstants);
 
  private:
-  ME0Geometry* buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants);
+  boost::shared_ptr<ME0Geometry> buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants);
   std::map<ME0DetId,std::vector<ME0DetId>> chids;
 };
 
