@@ -32,7 +32,8 @@ GEMGeometryBuilderFromDDD::GEMGeometryBuilderFromDDD()
 GEMGeometryBuilderFromDDD::~GEMGeometryBuilderFromDDD() 
 { }
 
-GEMGeometry* GEMGeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<GEMGeometry>
+GEMGeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
 {
   std::string attribute = "ReadOutName"; // could come from .orcarc
   std::string value     = "MuonGEMHits";    // could come from .orcarc
@@ -52,11 +53,12 @@ GEMGeometry* GEMGeometryBuilderFromDDD::build(const DDCompactView* cview, const 
   return this->buildGeometry(fview, muonConstants);
 }
 
-GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<GEMGeometry>
+GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
 {
   std::cout << "Building the geometry service" << std::endl;
   LogDebug("GEMGeometryBuilderFromDDD") <<"Building the geometry service";
-  GEMGeometry* geometry = new GEMGeometry();
+  boost::shared_ptr<GEMGeometry> geometry = boost::shared_ptr<GEMGeometry>(new GEMGeometry());
 
   LogDebug("GEMGeometryBuilderFromDDD") << "About to run through the GEM structure\n" 
 					<<" First logical part "
