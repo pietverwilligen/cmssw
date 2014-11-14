@@ -17,7 +17,6 @@
 
 #include "DataFormats/GeometrySurface/interface/RectangularPlaneBounds.h"
 #include "DataFormats/GeometrySurface/interface/TrapezoidalPlaneBounds.h"
-
 #include "DataFormats/GeometryVector/interface/Basic3DVector.h"
 
 #include "CLHEP/Units/GlobalSystemOfUnits.h"
@@ -25,13 +24,16 @@
 #include <iostream>
 #include <algorithm>
 
+
+
 RPCGeometryBuilderFromDDD::RPCGeometryBuilderFromDDD(bool comp11) : theComp11Flag(comp11)
 { }
 
 RPCGeometryBuilderFromDDD::~RPCGeometryBuilderFromDDD() 
 { }
 
-RPCGeometry* RPCGeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<RPCGeometry>
+RPCGeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
 {
   std::string attribute = "ReadOutName"; // could come from .orcarc
   std::string value     = "MuonRPCHits";    // could come from .orcarc
@@ -48,13 +50,16 @@ RPCGeometry* RPCGeometryBuilderFromDDD::build(const DDCompactView* cview, const 
   DDFilteredView fview(*cview);
   fview.addFilter(filter);
 
+  // return this->buildGeometry(fview, muonConstants);
   return this->buildGeometry(fview, muonConstants);
 }
 
-RPCGeometry* RPCGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<RPCGeometry>
+RPCGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
 {
   LogDebug("RPCGeometryBuilderFromDDD") <<"Building the geometry service";
-  RPCGeometry* geometry = new RPCGeometry();
+  // RPCGeometry* geometry = new RPCGeometry();
+  boost::shared_ptr<RPCGeometry> geometry =  boost::shared_ptr<RPCGeometry>(new RPCGeometry());
 
   LogDebug("RPCGeometryBuilderFromDDD") << "About to run through the RPC structure\n" 
 					<<" First logical part "
