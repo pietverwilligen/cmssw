@@ -32,7 +32,8 @@ ME0GeometryBuilderFromDDD::ME0GeometryBuilderFromDDD()
 ME0GeometryBuilderFromDDD::~ME0GeometryBuilderFromDDD() 
 { }
 
-ME0Geometry* ME0GeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<ME0Geometry>
+ME0GeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
 {
   std::string attribute = "ReadOutName"; // could come from .orcarc
   std::string value     = "MuonME0Hits";    // could come from .orcarc
@@ -52,10 +53,11 @@ ME0Geometry* ME0GeometryBuilderFromDDD::build(const DDCompactView* cview, const 
   return this->buildGeometry(fview, muonConstants);
 }
 
-ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
+boost::shared_ptr<ME0Geometry>
+ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
 {
   LogDebug("ME0GeometryBuilderFromDDD") <<"Building the geometry service";
-  ME0Geometry* geometry = new ME0Geometry();
+  boost::shared_ptr<ME0Geometry> geometry = boost::shared_ptr<ME0Geometry>(new ME0Geometry);
 
   LogDebug("ME0GeometryBuilderFromDDD") << "About to run through the ME0 structure\n" 
 					<<" First logical part "
