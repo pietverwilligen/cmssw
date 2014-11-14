@@ -18,7 +18,23 @@ process.maxEvents = cms.untracked.PSet(
 )
 process.source = cms.Source("EmptySource")
 
-process.MessageLogger = cms.Service("MessageLogger")
+# process.MessageLogger = cms.Service("MessageLogger")
+process.MessageLogger = cms.Service("MessageLogger",
+    # --- get more debug printout ---
+    # activate LogDebug messages     
+    # more info: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMessageLoggerDebug
+    destinations = cms.untracked.vstring(
+        'detailedInfo',
+         'critical'
+    ),
+    detailedInfo = cms.untracked.PSet(
+        threshold = cms.untracked.string('DEBUG')
+    ),
+    debugModules = cms.untracked.vstring(
+        'ME0GeometryBuilderFromDDD',
+        'MuonNumberingInitialization'
+    )
+)
 
 process.test = cms.EDAnalyzer("ME0GeometryAnalyzer")
 
