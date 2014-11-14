@@ -23,14 +23,15 @@
 
 #include <memory>
 
-using namespace edm;
+// using namespace edm; // can we get rid of this?
+
+
 
 RPCGeometryESModule::RPCGeometryESModule(const edm::ParameterSet & p){
   comp11 = p.getUntrackedParameter<bool>("compatibiltyWith11",true);
   // Find out if using the DDD or CondDB Geometry source.
   useDDD = p.getUntrackedParameter<bool>("useDDD",true);
   setWhatProduced(this);
-
 }
 
 
@@ -40,20 +41,20 @@ RPCGeometryESModule::~RPCGeometryESModule(){}
 boost::shared_ptr<RPCGeometry>
 RPCGeometryESModule::produce(const MuonGeometryRecord & record) {
 
-  std::cout<<"RPCGeometryESModule :: produce"<<std::endl;
-
-  if(useDDD){
+  // std::cout<<"RPCGeometryESModule :: produce"<<std::endl;
+  if(useDDD) {
     edm::ESTransientHandle<DDCompactView> cpv;
-    std::cout<<"RPCGeometryESModule :: produce :: 1/4 Get Muon Ideal Geometry Record"<<std::endl;
+    // std::cout<<"RPCGeometryESModule :: produce :: 1/4 Get Muon Ideal Geometry Record"<<std::endl;
     record.getRecord<IdealGeometryRecord>().get(cpv);
-    std::cout<<"RPCGeometryESModule :: produce :: 2/4 Get Muon DDD Constants"<<std::endl;
+    // std::cout<<"RPCGeometryESModule :: produce :: 2/4 Get Muon DDD Constants"<<std::endl;
     edm::ESHandle<MuonDDDConstants> mdc;
-    std::cout<<"RPCGeometryESModule :: produce :: 3/4 Get Muon Numbering Record"<<std::endl;
+    // std::cout<<"RPCGeometryESModule :: produce :: 3/4 Get Muon Numbering Record"<<std::endl;
     record.getRecord<MuonNumberingRecord>().get(mdc);
-    std::cout<<"RPCGeometryESModule :: produce :: 4/4 Build"<<std::endl;
+    // std::cout<<"RPCGeometryESModule :: produce :: 4/4 Build"<<std::endl;
     RPCGeometryBuilderFromDDD builder(comp11);
     return boost::shared_ptr<RPCGeometry>(builder.build(&(*cpv), *mdc));
-  }else{
+  }
+  else {
     edm::ESHandle<RecoIdealGeometry> rigrpc;
     record.getRecord<RPCRecoGeometryRcd>().get(rigrpc);
     RPCGeometryBuilderFromCondDB builder(comp11);
