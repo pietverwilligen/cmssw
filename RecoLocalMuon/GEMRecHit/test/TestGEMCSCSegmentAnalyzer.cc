@@ -956,13 +956,19 @@ for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
   // GEMCSC Segments
   // ================
   edm::Handle<GEMCSCSegmentCollection> gemcscSegment;
-  iEvent.getByLabel("gemcscSegments","",gemcscSegment);
+  iEvent.getByLabel("gemcscSegments","", gemcscSegment);
+  // iEvent.getByLabel("gemcscSegments","", "RECO", gemcscSegment);
+  // iEvent.getByLabel("gemcscSegments", "", "GEMCSCREC", gemcscSegment);
 
   if(gemcscSegment->size()!=0)GEMCSC_NumGEMCSCSeg->Fill(gemcscSegment->size());
 
     for (auto gemcscs = gemcscSegment->begin(); gemcscs != gemcscSegment->end(); gemcscs++) {
 
       auto gemrhs_if = gemcscs->gemRecHits();
+      if(debug) 
+	{ 	
+	  std::cout<<"GEM-CSC Segment with "<<gemcscs->gemRecHits().size()<<" GEM rechits and "<<gemcscs->cscSegment().specificRecHits().size()<<" CSC rechits"<<std::endl;
+	}
       if(gemrhs_if.size()==0) continue;
       // if(gemrhs_if.size()!=0) continue;
 
