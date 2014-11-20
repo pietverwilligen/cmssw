@@ -29,16 +29,36 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+# Number of events
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(10)
+)
+
+# Message Logger
+process.MessageLogger = cms.Service("MessageLogger",
+    # --- get more debug printout ---
+    # activate LogDebug messages
+    # more info: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMessageLoggerDebug
+    destinations = cms.untracked.vstring(
+        'detailedInfo',
+        'critical'
+    ),
+    detailedInfo = cms.untracked.PSet(
+    threshold = cms.untracked.string('DEBUG')
+    ),
+    debugModules = cms.untracked.vstring(
+        'GEMCSCSegmentBuilder',
+        'GEMCSCSegmentProducer',
+        'GEMCSCSegmentBuilderPluginFactory',
+	'GEMCSCSegAlgoRR',
+        'GEMCSCSegmentAlgorithm',
+        'CSCSegtoGEM',
+    )
 )
 
 # Input source
 process.source = cms.Source("EmptySource")
-
-process.options = cms.untracked.PSet(
-
-)
+process.options = cms.untracked.PSet()
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
@@ -48,13 +68,12 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 # Output definition
-
 process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
     # fileName = cms.untracked.string('/lustre/cms/store/user/radogna/GEMCSCSegment/out_reco10_paranormal.root'),
-    fileName = cms.untracked.string('out_reco10_overlap.root'),
+    fileName = cms.untracked.string('out_reco_overlap.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('GEN-SIM-DIGI-RECO')
