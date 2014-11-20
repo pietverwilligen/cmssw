@@ -20,7 +20,10 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         # 'file:/lustre/cms/store/user/radogna/GEMCSCSegment/FullDigi_withNewSSegm/out_rec_gemcsc.test10.root'
         # 'file:out_reco10_paranormal.root'
-        'file:out_rec_gemcsc.test10_xcommit.root'
+        # 'file:out_rec_gemcsc.test10_xcommit.root'
+        # 'file:out_reco10_overlap.root'
+        'file:out_reco_overlap.root'
+        # 'file:out_rereco_overlap.root'
     )
 )
 
