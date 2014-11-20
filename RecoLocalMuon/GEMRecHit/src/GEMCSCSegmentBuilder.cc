@@ -113,7 +113,9 @@ for(CSCSegmentCollection::const_iterator segm = cscsegments->begin(); segm != cs
         CSCStationIndex index11(gemRegion,gemStation,gemRing,gem1stChamber,1);         CSCStationIndex index12(gemRegion,gemStation,gemRing,gem1stChamber,2); 
         CSCStationIndex index21(gemRegion,gemStation,gemRing,gem2ndChamber,1);         CSCStationIndex index22(gemRegion,gemStation,gemRing,gem2ndChamber,2); 
         CSCStationIndex index31(gemRegion,gemStation,gemRing,gem3rdChamber,1);         CSCStationIndex index32(gemRegion,gemStation,gemRing,gem3rdChamber,2); 
-	std::vector<CSCStationIndex> indexvector; indexvector.push_back(index11); indexvector.push_back(index12); indexvector.push_back(index21); indexvector.push_back(index22); indexvector.push_back(index31); indexvector.push_back(index32); 
+	std::vector<CSCStationIndex> indexvector; 
+	indexvector.push_back(index11); indexvector.push_back(index12); indexvector.push_back(index21); 
+	indexvector.push_back(index22); indexvector.push_back(index31); indexvector.push_back(index32); 
 
         // std::set<GEMDetId> rollsForThisCSC = TheObjectCSC->GetInstance(setup)->GetRolls(theindex);        
 	std::vector<GEMDetId> rollsForThisCSCvector; 
@@ -151,7 +153,7 @@ for(CSCSegmentCollection::const_iterator segm = cscsegments->begin(); segm != cs
       ensembleS_noME1b[CSCId.rawId()]=ss_noME1b;
 
   }
- std::cout<<"caso NO ME1b ensembleRH size: "<<ensembleRH[CSCId.rawId()].size()<<std::endl;// debug
+  // std::cout<<"caso NO ME1b ensembleRH size: "<<ensembleRH[CSCId.rawId()].size()<<std::endl;// debug
 }// for csc segments
     
 for(auto enIt=ensembleS_noME1b.begin(); enIt != ensembleS_noME1b.end(); enIt++) {
