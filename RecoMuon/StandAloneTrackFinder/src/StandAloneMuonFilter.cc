@@ -91,15 +91,18 @@ StandAloneMuonFilter::StandAloneMuonFilter(const ParameterSet& par,
   bool enableCSCMeasurement = par.getParameter<bool>("EnableCSCMeasurement");
   bool enableRPCMeasurement = par.getParameter<bool>("EnableRPCMeasurement");
   bool enableGEMMeasurement = par.getParameter<bool>("EnableGEMMeasurement");
-
+  bool enableGEMCSCMeasurement = par.getParameter<bool>("EnableGEMCSCMeasurement");
+    
   theMeasurementExtractor = new MuonDetLayerMeasurements(par.getParameter<InputTag>("DTRecSegmentLabel"),
 							 par.getParameter<InputTag>("CSCRecSegmentLabel"),
 							 par.getParameter<InputTag>("RPCRecSegmentLabel"),
 							 par.getParameter<InputTag>("GEMRecSegmentLabel"),
+                             par.getParameter<InputTag>("GEMCSCRecSegmentLabel"),
 							 enableDTMeasurement,
 							 enableCSCMeasurement,
 							 enableRPCMeasurement,
-							 enableGEMMeasurement);
+							 enableGEMMeasurement,
+                             enableGEMCSCMeasurement);
   
   theRPCLoneliness = (!(enableDTMeasurement && enableCSCMeasurement)) ? enableRPCMeasurement : false;
 }
