@@ -18,19 +18,16 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        # 'file:/lustre/cms/store/user/radogna/GEMCSCSegment/FullDigi_withNewSSegm/out_rec_gemcsc.test10.root'
-        # 'file:out_reco10_paranormal.root'
-        # 'file:out_rec_gemcsc.test10_xcommit.root'
-        # 'file:out_reco10_overlap.root'
-        # 'file:out_reco_overlap.root'
-        # 'file:out_rereco_overlap.root'
         'file:SingleMuPt10_RECO_upgrade2019_lowstat.root'
+        # 'file:SingleMuPt10_RERECO_upgrade2019_lowstat.root'
+        # 'file:SingleMuPt10_RECO_upgrade2019.root'
+        # 'file:SingleMuPt10_RERECO_upgrade2019.root'
     )
 )
 
 process.gemcscs = cms.EDAnalyzer('TestGEMCSCSegmentAnalyzer',
-                              RootFileName = cms.untracked.string("TestGEMCSCSegmentHistograms_XdofFD10.root"),
+                              RootFileName = cms.untracked.string("SingleMuPt10_ANALYZED_upgrade2019.root"),
                               Debug = cms.untracked.bool(True),
-)xs
+)
 
 process.p = cms.Path(process.gemcscs)

@@ -23,7 +23,7 @@ GEMCSCSegmentProducer::GEMCSCSegmentProducer(const edm::ParameterSet& pas) : iev
 	
     inputObjectsTagCSC = pas.getParameter<edm::InputTag>("inputObjectsCSC");
     inputObjectsTagGEM = pas.getParameter<edm::InputTag>("inputObjectsGEM");
-    segmentBuilder_ = new GEMCSCSegmentBuilder(pas);
+    segmentBuilder_    = new GEMCSCSegmentBuilder(pas);
 
   	// register what this produces
     produces<GEMCSCSegmentCollection>();
@@ -47,7 +47,10 @@ void GEMCSCSegmentProducer::produce(edm::Event& ev, const edm::EventSetup& setup
     setup.get<MuonGeometryRecord>().get(gemg);
     const GEMGeometry* ggeom = &*gemg;
     
+
     segmentBuilder_->setGeometry(ggeom,cgeom);
+    // fill the map with matches between GEM and CSC chambers
+    segmentBuilder_->setSetup(ggeom,cgeom);
 
     // get the collection of CSCSegment and GEMRecHits
     edm::Handle<GEMRecHitCollection> gemRecHits;

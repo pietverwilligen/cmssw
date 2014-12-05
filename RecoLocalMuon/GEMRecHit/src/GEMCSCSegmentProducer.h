@@ -14,7 +14,6 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-#include "RecoLocalMuon/GEMRecHit/interface/CSCSegtoGEM.h"
 
 class GEMCSCSegmentBuilder; 
 
@@ -32,7 +31,7 @@ private:
     edm::InputTag inputObjectsTagCSC;
     edm::InputTag inputObjectsTagGEM;// input tag labelling rechits for input
     GEMCSCSegmentBuilder* segmentBuilder_;
-    ObjectMapCSC* TheObjectCSC;
+    // ObjectMapCSC* TheObjectCSC;
 };
 
 #endif

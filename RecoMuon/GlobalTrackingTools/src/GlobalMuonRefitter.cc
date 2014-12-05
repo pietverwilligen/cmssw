@@ -73,12 +73,14 @@ using namespace edm;
 
 GlobalMuonRefitter::GlobalMuonRefitter(const edm::ParameterSet& par,
 				       const MuonServiceProxy* service) : 
+
   theCosmicFlag(par.getParameter<bool>("PropDirForCosmics")),
   theDTRecHitLabel(par.getParameter<InputTag>("DTRecSegmentLabel")),
   theCSCRecHitLabel(par.getParameter<InputTag>("CSCRecSegmentLabel")),
   theGEMRecHitLabel(par.getParameter<InputTag>("GEMRecHitLabel")),
   theService(service) {
 
+  std::cout<<"Muon|GlobalTrackingTools|GlobalMuonRefitter :: Constructor"<<std::endl;
   theCategory = par.getUntrackedParameter<string>("Category", "Muon|RecoMuon|GlobalMuon|GlobalMuonRefitter");
 
   theHitThreshold = par.getParameter<int>("HitThreshold");
@@ -167,6 +169,7 @@ vector<Trajectory> GlobalMuonRefitter::refit(const reco::Track& globalTrack,
 					     const int theMuonHitsOption,
 					     const TrackerTopology *tTopo) const {
   LogTrace(theCategory) << " *** GlobalMuonRefitter *** option " << theMuonHitsOption << endl;
+  std::cout<<"Muon|GlobalTrackingTools|GlobalMuonRefitter :: refit (const reco::Track&, const int, const TrackerTopology) "<<std::endl;
     
   ConstRecHitContainer allRecHitsTemp; // all muon rechits temp
 
@@ -197,6 +200,7 @@ vector<Trajectory> GlobalMuonRefitter::refit(const reco::Track& globalTrack,
 					     const int theMuonHitsOption,
 					     const TrackerTopology *tTopo) const {
 
+  std::cout<<"Muon|GlobalTrackingTools|GlobalMuonRefitter :: refit (const reco::Track&, const reco::TransientTrack, const TransientTrackingRecHitContainer, const int, const TrackerTopology) "<<std::endl;
   // MuonHitsOption: 0 - tracker only
   //                 1 - include all muon hits
   //                 2 - include only first muon hit(s)
@@ -280,6 +284,7 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
 				       map<DetId, int> &hitMap) const {
 
   LogTrace(theCategory) << " GlobalMuonRefitter::checkMuonHits " << endl;
+  std::cout<<"Muon|GlobalTrackingTools|GlobalMuonRefitter :: checkMuonHits "<<std::endl;
 
   float coneSize = 20.0;
 
@@ -298,6 +303,7 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
     if (id.det()!=DetId::Muon) continue;
 
     if ( id.subdetId() == MuonSubdetId::DT ) {
+      std::cout<<"\t MuonSubdetId == DT"<<std::endl;
       DTChamberId did(id.rawId());
       chamberId=did;
       
@@ -338,6 +344,7 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
       }
     }// end of if DT
     else if ( id.subdetId() == MuonSubdetId::CSC ) {
+      std::cout<<"\t MuonSubdetId == CSC"<<std::endl;
       CSCDetId did(id.rawId());
       chamberId=did.chamberId();
 
@@ -345,20 +352,40 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
         std::vector <const TrackingRecHit*> hits2d = (*imrh)->recHits();
         for (std::vector <const TrackingRecHit*>::const_iterator hit2d = hits2d.begin(); hit2d!= hits2d.end(); hit2d++) {
           DetId id1 = (*hit2d)->geographicalId();
-          CSCDetId lid(id1.rawId());
-          
-          // Get the CSC Rechits from this layer
-          CSCRecHit2DCollection::range dRecHits = theCSCRecHits->get(lid);      
-          int layerHits=0;
+	  // because of GEM-CSC segment one needs to consider 
+	  // that the reconstructed segment contains both CSC 
+	  // and GEM rechits, so check explicitly here
+          if(id1.subdetId() == MuonSubdetId::CSC) {
+	    CSCDetId lid(id1.rawId());          
 
-          for (CSCRecHit2DCollection::const_iterator ir = dRecHits.first; ir != dRecHits.second; ir++ ) {
-    	    double rhitDistance = (ir->localPosition()-(**hit2d).localPosition()).mag();
-  	    if ( rhitDistance < coneSize ) layerHits++;
-            LogTrace(theCategory) << ir->localPosition() << "  " << (**hit2d).localPosition()
-  	           << " Distance: " << rhitDistance << " recHits: " << layerHits << endl;
-          }
-          if (layerHits>detRecHits) detRecHits=layerHits;
-        }
+	    // Get the CSC Rechits from this layer
+	    CSCRecHit2DCollection::range dRecHits = theCSCRecHits->get(lid);      
+	    int layerHits=0;
+	    
+	    for (CSCRecHit2DCollection::const_iterator ir = dRecHits.first; ir != dRecHits.second; ir++ ) {
+	      double rhitDistance = (ir->localPosition()-(**hit2d).localPosition()).mag();
+	      if ( rhitDistance < coneSize ) layerHits++;
+	      LogTrace(theCategory) << ir->localPosition() << "  " << (**hit2d).localPosition()
+				    << " Distance: " << rhitDistance << " recHits: " << layerHits << endl;
+	    }
+	    if (layerHits>detRecHits) detRecHits=layerHits;
+	  }
+          else if(id1.subdetId() == MuonSubdetId::GEM) {
+	    GEMDetId lid(id1.rawId());
+
+	    // Get the GEM Rechits from this layer
+	    GEMRecHitCollection::range dRecHits = theGEMRecHits->get(lid);
+	    int layerHits=0;
+
+	    for (GEMRecHitCollection::const_iterator ir = dRecHits.first; ir != dRecHits.second; ir++ ) {
+	      double rhitDistance = (ir->localPosition()-(**hit2d).localPosition()).mag();
+	      if ( rhitDistance < coneSize ) layerHits++;
+	      LogTrace(theCategory) << ir->localPosition() << "  " << (**hit2d).localPosition()
+				    << " Distance: " << rhitDistance << " recHits: " << layerHits << endl;
+	    }
+	    if (layerHits>detRecHits) detRecHits=layerHits;
+	  }
+	}
       } else {
         // Get the CSC Rechits from this layer
         CSCRecHit2DCollection::range dRecHits = theCSCRecHits->get(did);      
@@ -372,6 +399,7 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
       }
     }//end of CSC if
     else if ( id.subdetId() == MuonSubdetId::GEM ) {
+      std::cout<<"\t MuonSubdetId == GEM"<<std::endl;
       GEMDetId did(id.rawId());
       chamberId=did.chamberId();
 
@@ -406,7 +434,10 @@ void GlobalMuonRefitter::checkMuonHits(const reco::Track& muon,
       }
     }
     else {
-      if ( id.subdetId() != MuonSubdetId::RPC ) LogError(theCategory)<<" Wrong Hit Type ";
+      if ( id.subdetId() != MuonSubdetId::RPC ) {
+	std::cout<<"\t MuonSubdetId == RPC"<<std::endl;
+	LogError(theCategory)<<" Wrong Hit Type ";
+      }
       continue;      
     }
       

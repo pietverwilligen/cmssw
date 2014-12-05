@@ -46,6 +46,7 @@ using namespace std;
 TevMuonProducer::TevMuonProducer(const ParameterSet& parameterSet) {
 
   LogDebug("Muon|RecoMuon|TevMuonProducer") << "constructor called" << endl;
+  std::cout<<"Muon|RecoMuon|TevMuonProducer >> constructor called" << std::endl;
 
   // GLB Muon Collection Label
   theGLBCollectionLabel = parameterSet.getParameter<InputTag>("MuonCollectionLabel");
@@ -85,6 +86,7 @@ TevMuonProducer::TevMuonProducer(const ParameterSet& parameterSet) {
 TevMuonProducer::~TevMuonProducer() {
 
   LogTrace("Muon|RecoMuon|TevMuonProducer") << "destructor called" << endl;
+  std::cout<<"Muon|RecoMuon|TevMuonProducer >> destructor called"<<std::endl;
   if (theService) delete theService;
   if (theRefitter) delete theRefitter;
   if (theTrackLoader) delete theTrackLoader;
@@ -99,6 +101,9 @@ void TevMuonProducer::produce(Event& event, const EventSetup& eventSetup) {
   const string metname = "Muon|RecoMuon|TevMuonProducer";  
   LogTrace(metname)<< endl << endl;
   LogTrace(metname)<< "TeV Muon Reconstruction started" << endl;  
+
+  std::cout<<"Muon|RecoMuon|TevMuonProducer"<< std::endl << std::endl;
+  std::cout<<"Muon|RecoMuon|TevMuonProducer >> TeV Muon Reconstruction started" << std::endl;  
 
   // Update the services
   theService->update(eventSetup);
@@ -120,6 +125,7 @@ void TevMuonProducer::produce(Event& event, const EventSetup& eventSetup) {
   Handle<vector<Trajectory> > glbMuonsTraj;
 
   LogTrace(metname)<< "Taking " << glbMuons->size() << " Global Muons "<<theGLBCollectionLabel<<endl;
+  std::cout<<"Muon|RecoMuon|TevMuonProducer >> Taking " << glbMuons->size() << " Global Muons "<<theGLBCollectionLabel<<std::endl;
 
   vector<MuonTrajectoryBuilder::TrackCand> glbTrackCands;
 
@@ -127,27 +133,37 @@ void TevMuonProducer::produce(Event& event, const EventSetup& eventSetup) {
     
   const reco::TrackCollection *glbTracks = glbMuons.product();
   
+  std::cout<<"Muon|RecoMuon|TevMuonProducer >> starting refits :: size = "<<theRefits.size()<<std::endl;
   for(unsigned int ww=0;ww<theRefits.size();ww++) {
     LogDebug(metname)<<"TeVRefit for Refit: " <<theRefitIndex[ww];
+    std::cout<<"Muon|RecoMuon|TevMuonProducer >> TeVRefit for Refit: " <<theRefitIndex[ww]<<std::endl;
     std::vector<std::pair<Trajectory*,reco::TrackRef> > miniMap;
     vector<Trajectory*> trajectories;
     reco::TrackRef::key_type trackIndex = 0;
+    std::cout<<"\t Loop over glbTracks: "<<std::endl;
     for (reco::TrackCollection::const_iterator track = glbTracks->begin(); track!=glbTracks->end(); track++ , ++trackIndex) {
       reco::TrackRef glbRef(glbMuons,trackIndex);
-      
+      std::cout<<"\t\t made TrackRef glbRef now going to do refit: "<<std::endl;;
       vector<Trajectory> refitted=theRefitter->refit(*track,theRefitIndex[ww],tTopo);
-
+      std::cout<<"\t\t refit done"<<std::endl; 
       if (refitted.size()>0) {
         Trajectory *refit = new Trajectory(refitted.front());
 	LogDebug(metname)<<"TeVTrackLoader for Refit: " <<theRefits[ww];
+	std::cout<<"\t\t TeVTrackLoader for Refit: " <<theRefits[ww]<<std::endl;
 	trajectories.push_back(refit);
+	std::cout<<"\t\t refit saved in vector trajectories "<<std::endl;;
 	std::pair<Trajectory*,reco::TrackRef> thisPair(refit,glbRef);
 	miniMap.push_back(thisPair);
+	std::cout<<"\t\t pair <refit,glbRef> saved in miniMap "<<std::endl;;
       }
     }
+    std::cout<<" before loadTracks ";
     theTrackLoader->loadTracks(trajectories,event,miniMap,theRefits[ww]);
+    std::cout<<" after loadTracks ";
+    std::cout<<""<<std::endl;
   }
     
   LogTrace(metname) << "Done." << endl;    
+  std::cout<<" Done." << endl;    
 
 }
