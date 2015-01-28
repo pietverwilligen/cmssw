@@ -47,8 +47,6 @@ def simGeoLoad(score):
 
     elif score == "2023Muon":
        process.load('Configuration.Geometry.GeometryExtended2023MuonReco_cff')
-
-
     elif score == "SLHC":
         process.load('SLHCUpgradeSimulations.Geometry.Phase1_R30F12_HCal_cmsSimIdealGeometryXML_cff')
         
@@ -70,6 +68,13 @@ def simGeoLoad(score):
                     connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_42X_GEOMETRY")
                  )
         )
+
+    ## RPC Development ######
+    elif score == "RPC2Gap":
+       process.load("Geometry.CMSCommonData.cmsExtendedGeometry2015XML_RPC2Gap_cfi")
+    elif score == "RPC4RE11":
+       process.load("Geometry.CMSCommonData.cmsExtendedGeometry2015XML_RPC4RE11_cfi")
+    #########################
 
     else:
       help()
