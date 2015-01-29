@@ -168,10 +168,15 @@ RPCDetId::buildfromTrIndex(int trIndex)
   trIndex = trIndex%10000;
   int sector_id = trIndex/100;
   if (region!=0) {
+    /*
+        // This piece affects only RE1/1
+	// makes the chamber at x=0 (phi=0) start as CH02 instead of CH01
+        // so comment it out for now 
         if ( !(ring == 1 && station > 1 && region==1)) {     
          sector_id+=1;
          if (sector_id==37)sector_id=1;
      }
+    */
   }
   if (region==-1){
     if (sector_id < 20 ){
