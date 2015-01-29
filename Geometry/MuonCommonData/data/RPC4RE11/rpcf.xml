@@ -578,8 +578,8 @@
     <Numeric name="n" value="2"/>
     <Numeric name="startCopyNo" value="1"/>
     <Numeric name="incrCopyNo"  value="2"/>
-    <Numeric name="stepAngle"   value="10*deg"/>
-    <Numeric name="startAngle"  value="5*deg"/>
+    <Numeric name="stepAngle"   value="20*deg"/>
+    <Numeric name="startAngle"  value="355*deg"/>
     <Numeric name="zoffset"     value="-2.2*cm"/>
 </Algorithm>
 <Algorithm name="muon:DDMuonAngular">
@@ -589,8 +589,8 @@
     <Numeric name="n" value="2"/>
     <Numeric name="startCopyNo" value="2"/>
     <Numeric name="incrCopyNo"  value="2"/>
-    <Numeric name="stepAngle"   value="10*deg"/>
-    <Numeric name="startAngle"  value="15*deg"/>
+    <Numeric name="stepAngle"   value="20*deg"/>
+    <Numeric name="startAngle"  value="5*deg"/>
     <Numeric name="zoffset"     value="2.2*cm"/>
 </Algorithm>
 <!-- RE1/1 stage volumes -->
