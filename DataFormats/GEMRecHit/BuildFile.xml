@@ -2,6 +2,13 @@
 <use   name="DataFormats/MuonDetId"/>
 <use   name="DataFormats/TrackingRecHit"/>
 
+<!-- begin GEM CSC Segment -->
+<use   name="DataFormats/GeometryVector"/>
+<use   name="DataFormats/CSCRecHit"/>
+<use   name="rootrflx"/>
+<!-- end   GEM CSC Segment -->
+
 <export>
   <lib   name="1"/>
 </export>
+

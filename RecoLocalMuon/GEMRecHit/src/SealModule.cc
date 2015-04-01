@@ -14,3 +14,11 @@ DEFINE_FWK_MODULE(GEMRecHitProducer);
 // DEFINE_FWK_MODULE(GEMPointProducer);
 // DEFINE_FWK_MODULE(GEMRecHitAli);
 DEFINE_EDM_PLUGIN (GEMRecHitAlgoFactory, GEMRecHitStandardAlgo, "GEMRecHitStandardAlgo");
+
+
+// GEM-CSC Segment
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegmentProducer.h>
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegmentBuilderPluginFactory.h>
+#include <RecoLocalMuon/GEMRecHit/src/GEMCSCSegAlgoRR.h>
+DEFINE_FWK_MODULE(GEMCSCSegmentProducer);
+DEFINE_EDM_PLUGIN(GEMCSCSegmentBuilderPluginFactory, GEMCSCSegAlgoRR, "GEMCSCSegAlgoRR");
