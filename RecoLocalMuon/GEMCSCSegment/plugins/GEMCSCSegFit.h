@@ -4,7 +4,7 @@
 // GEMCSCSegFit.h extension to fit both CSCHits and GEMHits - Piet Verwilligen
 // Created: 21.04.2015
 
-/* Trial to work with general Tracking Rechits, such that GEM and CSC rechits
+/* Work with general Tracking Rechits, such that GEM and CSC rechits
  * can be treated at the same level. In case needed the Tracking Rechit can be
  * cast to the CSCRecHit2D or the GEMRecHit for access to more specific info.
  */
@@ -72,20 +72,10 @@ public:
  GEMCSCSegFit(std::map<uint32_t, const CSCLayer*> csclayermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap, const std::vector<const TrackingRecHit*> hits) : 
   csclayermap_( csclayermap ), gemetapartmap_( gemrollmap ), hits_( hits ), scaleXError_( 1.0 ), refid_( csclayermap_.begin()->first ), fitdone_( false ) 
     {
-      // LogDebug info about reading of CSC Chamber map and GEM Eta Partition map
+      // --- LogDebug info about reading of CSC Layer map and GEM Eta Partition map -----------------------
       edm::LogVerbatim("GEMCSCSegFit") << "[GEMCSCSegFit::ctor] cached the csclayermap and the gemrollmap";
-      /*
-      // LogDebug for CSC Chamber map                                            
-      std::stringstream cscchambermapss; cscchambermapss<<"[GEMCSCSegFit::ctor] :: cscchambermap :: elements [";
-      for(std::map<uint32_t, const CSCChamber*>::const_iterator mapIt = cscchambermap_.begin(); mapIt != cscchambermap_.end(); ++mapIt)
-	{
-	  cscchambermapss<<"[CSC DetId "<<mapIt->first<<" ="<<CSCDetId(mapIt->first)<<", CSC Chamber "<<mapIt->second<<" ="<<(mapIt->second)->id()<<"],";
-	}
-      cscchambermapss<<"]";
-      std::string cscchambermapstr = cscchambermapss.str();
-      edm::LogVerbatim("GEMCSCSegFit") << cscchambermapstr;
-      */
-      // LogDebug for CSC Layer map                                            
+
+      // --- LogDebug for CSC Layer map -------------------------------------------------------------------
       std::stringstream csclayermapss; csclayermapss<<"[GEMCSCSegFit::ctor] :: csclayermap :: elements ["<<std::endl;
       for(std::map<uint32_t, const CSCLayer*>::const_iterator mapIt = csclayermap_.begin(); mapIt != csclayermap_.end(); ++mapIt)
 	{
@@ -94,7 +84,9 @@ public:
       csclayermapss<<"]"<<std::endl;
       std::string csclayermapstr = csclayermapss.str();
       edm::LogVerbatim("GEMCSCSegFit") << csclayermapstr;
-      // LogDebug for GEM Eta Partition map                                      
+      // --- End LogDebug -----------------------------------------------------------------------------------
+
+      // --- LogDebug for GEM Eta Partition map ------------------------------------------------------------
       std::stringstream gemetapartmapss; gemetapartmapss<<"[GEMCSCSegFit::ctor] :: gemetapartmap :: elements ["<<std::endl;
       for(std::map<uint32_t, const GEMEtaPartition*>::const_iterator mapIt = gemetapartmap_.begin(); mapIt != gemetapartmap_.end(); ++mapIt)
 	{
@@ -103,6 +95,7 @@ public:
       gemetapartmapss<<"]"<<std::endl;
       std::string gemetapartmapstr = gemetapartmapss.str();
       edm::LogVerbatim("GEMCSCSegFit") << gemetapartmapstr;
+      // --- End LogDebug -----------------------------------------------------------------------------------
     } 
 
   virtual ~GEMCSCSegFit() {}
