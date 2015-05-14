@@ -55,8 +55,6 @@ GEMCSCSegAlgoRR::~GEMCSCSegAlgoRR() {}
 /**
  * Run the algorithm
  */
-// std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::run( std::map<uint32_t, const CSCChamber*> cscchambermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap, 
-// 						    std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits) 
 std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::run( std::map<uint32_t, const CSCLayer*> csclayermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap, 
 						 std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits) 
 {
@@ -71,9 +69,9 @@ std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::run( std::map<uint32_t, const CSCLay
 
 
   // LogDebug info about reading of CSC Chamber map and GEM Eta Partition map
-  // ------------------------------------------------------------------------
   edm::LogVerbatim("GEMCSCSegAlgoRR") << "[GEMCSCSegAlgoRR::run] cached the csclayermap and the gemrollmap";
-  // LogDebug for CSC Layer map
+
+  // --- LogDebug for CSC Layer map -----------------------------------------
   std::stringstream csclayermapss; csclayermapss<<"[GEMCSCSegAlgoRR::run] :: csclayermap :: elements ["<<std::endl;
   for(std::map<uint32_t, const CSCLayer*>::const_iterator mapIt = theCSCLayers_.begin(); mapIt != theCSCLayers_.end(); ++mapIt) 
     {
@@ -82,7 +80,9 @@ std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::run( std::map<uint32_t, const CSCLay
   csclayermapss<<"]"<<std::endl; 
   std::string csclayermapstr = csclayermapss.str();
   edm::LogVerbatim("GEMCSCSegAlgoRR") << csclayermapstr;
-  // LogDebug for GEM Eta Partition map
+  // --- End LogDebug -------------------------------------------------------
+
+  // --- LogDebug for GEM Eta Partition map ---------------------------------
   std::stringstream gemetapartmapss; gemetapartmapss<<"[GEMCSCSegAlgoRR::run] :: gemetapartmap :: elements ["<<std::endl;
   for(std::map<uint32_t, const GEMEtaPartition*>::const_iterator mapIt = theGEMEtaParts_.begin(); mapIt != theGEMEtaParts_.end(); ++mapIt) 
     {
@@ -162,7 +162,6 @@ std::vector<const TrackingRecHit*> GEMCSCSegAlgoRR::chainHitsToSegm(const CSCSeg
   // working with layers makes it here a bit more difficult:
   // the CSC segment points to the chamber, which we cannot ask from the map
   // the CSC rechits point to the layers, from which we can ask the chamber
-  // const CSCChamber* cscChamber = theCSChambers_.find(cscsegment->cscDetId())->second;
 
   auto segLP                   = cscsegment->localPosition();
   auto segLD                   = cscsegment->localDirection();
@@ -267,7 +266,7 @@ std::vector<const TrackingRecHit*> GEMCSCSegAlgoRR::chainHitsToSegm(const CSCSeg
 	  chainedRecHits.push_back(gemrh_min_l2->clone());
 	}
 
-    } // End check > 0 rechits CSC segment
+    } // End check > 0 GEM rechits
 
   return chainedRecHits;
 }
@@ -277,7 +276,7 @@ std::vector<const TrackingRecHit*> GEMCSCSegAlgoRR::chainHitsToSegm(const CSCSeg
 /** 
  * This algorithm uses a Minimum Spanning Tree (ST) approach to build
  * endcap muon track segments from the rechits in the 6 layers of a CSC
- * and the 2 layers inside a GE1/1 GEM
+ * and the 2 layers inside a GE1/1 GEM. Fit is implemented in GEMCSCSegFit.cc
  */
 std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::buildSegments(const CSCSegment* cscsegment, const std::vector<const TrackingRecHit*>& rechits) 
 {
@@ -297,7 +296,7 @@ std::vector<GEMCSCSegment> GEMCSCSegAlgoRR::buildSegments(const CSCSegment* cscs
       if (DetId((*trhIt)->rawId()).subdetId() == MuonSubdetId::GEM) { gemrechits.push_back( ((GEMRecHit*)*trhIt) ); }
     }
 
-  // The actual fit on all hits of the protosegment:
+  // The actual fit on all hits of the vector of the selected Tracking RecHits:
   delete sfit_;
   sfit_ = new GEMCSCSegFit(theCSCLayers_, theGEMEtaParts_, rechits);
   sfit_->fit();
