@@ -32,8 +32,6 @@ public:
 private:
     int iev; // events through
     GEMCSCSegmentBuilder* segmentBuilder_;
-    // edm::InputTag inputObjectsTagCSC;
-    // edm::InputTag inputObjectsTagGEM; // input tag labelling rechits for input
     edm::EDGetTokenT<CSCSegmentCollection> csc_token;
     edm::EDGetTokenT<GEMRecHitCollection>  gem_token;
 };
