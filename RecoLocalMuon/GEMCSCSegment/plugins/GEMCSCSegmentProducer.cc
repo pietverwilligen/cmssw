@@ -23,17 +23,19 @@ GEMCSCSegmentProducer::GEMCSCSegmentProducer(const edm::ParameterSet& pas) : iev
 	
   csc_token = consumes<CSCSegmentCollection>( pas.getParameter<edm::InputTag>("inputObjectsCSC"));
   gem_token = consumes<GEMRecHitCollection> ( pas.getParameter<edm::InputTag>("inputObjectsGEM"));
-  segmentBuilder_    = new GEMCSCSegmentBuilder(pas);
+  segmentBuilder_  = new GEMCSCSegmentBuilder(pas); // pass on the parameterset
   
   // register what this produces
   produces<GEMCSCSegmentCollection>();
 }
+
 
 GEMCSCSegmentProducer::~GEMCSCSegmentProducer() {
 
     LogDebug("GEMCSCSegment") << "deleting GEMCSCSegmentBuilder after " << iev << " events w/ gem and csc data.";
     delete segmentBuilder_;
 }
+
 
 void GEMCSCSegmentProducer::produce(edm::Event& ev, const edm::EventSetup& setup) {
     LogDebug("GEMCSCSegment") << "start producing segments for " << ++iev << "th event w/ gem and csc data";
@@ -48,13 +50,9 @@ void GEMCSCSegmentProducer::produce(edm::Event& ev, const edm::EventSetup& setup
     const GEMGeometry* ggeom = &*gemg;
     
     // cache the geometry in the builder
-    // check later whether this is necessary / is being used
     segmentBuilder_->setGeometry(ggeom,cgeom);
 
     // fill the map with matches between GEM and CSC chambers
-    // ... for now it is done for each event again
-    // ... but in principle this mapping needs to be done only once
-    // ... room for improvement
     segmentBuilder_->LinkGEMRollsToCSCChamberIndex(ggeom,cgeom);
 
     // get the collection of CSCSegment and GEMRecHits
