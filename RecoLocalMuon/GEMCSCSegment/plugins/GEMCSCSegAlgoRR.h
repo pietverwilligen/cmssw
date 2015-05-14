@@ -37,8 +37,6 @@ public:
   /**
    * Build segments for all desired groups of hits
    */
-  // std::vector<GEMCSCSegment> run( std::map<uint32_t, const CSCChamber*> cscchambermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap,
-  // 				     std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits);
   std::vector<GEMCSCSegment> run( std::map<uint32_t, const CSCLayer*> csclayermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap,
 				  std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits);
 private:
