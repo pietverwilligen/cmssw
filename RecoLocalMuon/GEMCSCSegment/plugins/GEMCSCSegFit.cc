@@ -50,7 +50,9 @@ void GEMCSCSegFit::fit2(void) {
   // with m = (y2-y1)/(x2-x1)
   // and  c = (y1*x2-x2*y1)/(x2-x1)
 
+
   // 1) Check whether hits are on the same layer
+  // -------------------------------------------
   std::vector<const TrackingRecHit*>::const_iterator ih = hits_.begin();
   // layer numbering: GEM: (1,2) CSC (3,4,5,6,7,8)
   int il1 = 0, il2 = 0;
@@ -79,8 +81,10 @@ void GEMCSCSegFit::fit2(void) {
     return;
   }
 
+
   // 2) Global Positions of hit 1 and 2 and
   //    Local  Positions of hit 1 and 2 w.r.t. reference CSC Chamber Frame 
+  // ---------------------------------------------------------------------
   GlobalPoint h1glopos, h2glopos;
   // global position hit 1
   if(d1.subdetId() == MuonSubdetId::GEM) {
@@ -104,7 +108,10 @@ void GEMCSCSegFit::fit2(void) {
   // We want hit wrt chamber (and local z will be != 0)
   LocalPoint h1pos = refcscchamber()->toLocal(h1glopos);  
   LocalPoint h2pos = refcscchamber()->toLocal(h2glopos);  
-    
+
+
+  // 3) Now make straight line between the two points in local coords
+  // ----------------------------------------------------------------    
   float dz = h2pos.z()-h1pos.z();
 
   uslope_ = ( h2pos.x() - h1pos.x() ) / dz ;
@@ -221,9 +228,6 @@ void GEMCSCSegFit::fitlsq(void) {
       if(d.subdetId() == MuonSubdetId::CSC) {
 	edm::LogVerbatim("GEMCSCSegFit") << "[GEMCSCSegFit::fitlsq] - Tracking RecHit is a CSC Hit in detid ("<<d.rawId()<<")";
 	edm::LogVerbatim("GEMCSCSegFit") << "[GEMCSCSegFit::fitlsq] - CSC DetId ("<<CSCDetId(d.rawId())<<")";
-	// I can only get the CSCLayer from the DetId if I use the CSCGeometry :: CSCLayer layer = cscGeo->layer(d.rawId())
-	// edm::LogVerbatim("GEMCSCSegFit") << "[GEMCSCSegFit::fitlsq] - CSC LayerId    ("<<(CSCLayer(d.rawId()))->id()<<")"; 
-	// edm::LogVerbatim("GEMCSCSegFit") << "[GEMCSCSegFit::fitlsq] - CSC Chamber Id ("<<((CSCLayer(d.rawId()))->chamber())->id()<<")";
       }
     }
 
@@ -304,7 +308,7 @@ void GEMCSCSegFit::fitlsq(void) {
       M(3,3) += IC(1,1) * z * z;
       B(3)   += ( u * IC(1,0) + v * IC(1,1) ) * z;
       
-    }
+    } // End Loop over the TrackingRecHits to make the block matrices to be filled in M and B
   
   SVector4 p;
   bool ok = M.Invert();
