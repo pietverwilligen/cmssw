@@ -27,15 +27,12 @@
 class GEMCSCSegmentAlgorithm {
 
     public:
-    // typedef std::pair<const CSCChamber*, std::map<uint32_t, const GEMEtaPartition*> >GEMCSCDetEnsemble; 
 
     /// Constructor
     explicit GEMCSCSegmentAlgorithm(const edm::ParameterSet&) {};
     /// Destructor
     virtual ~GEMCSCSegmentAlgorithm() {};
     /// Run the algorithm = build segments 
-    // virtual std::vector<GEMCSCSegment> run(std::map<uint32_t, const CSCChamber*> cscchambermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap,
-    //					   std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits) = 0;
     virtual std::vector<GEMCSCSegment> run(std::map<uint32_t, const CSCLayer*> csclayermap, std::map<uint32_t, const GEMEtaPartition*> gemrollmap,
 					   std::vector<const CSCSegment*> cscsegments, std::vector<const GEMRecHit*> gemrechits) = 0;
     private:
