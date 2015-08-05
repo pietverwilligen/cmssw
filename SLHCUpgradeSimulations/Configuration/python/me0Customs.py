@@ -31,6 +31,8 @@ def customise_Digi(process):
     process.mix.mixObjects.mixSH.subdets.append('MuonME0Hits')
     process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
     process.muonDigi += process.simMuonME0Digis
+    # process.load('SimCalorimetry.Configuration.SimCalorimetry_cff')
+    # process.digitisation_step.remove(calDigi)
     process=outputCustoms(process)
     return process
 
