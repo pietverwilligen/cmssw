@@ -30,7 +30,7 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     fileNames = cms.untracked.vstring('file:out_sim.root'),
     inputCommands = cms.untracked.vstring('keep *', 
-        'drop *_genParticles_*_*', 
+        # 'drop *_genParticles_*_*',               # this was automatically generated, but why would one wants to drop genParticles?
         'drop *_genParticlesForJets_*_*', 
         'drop *_kt4GenJets_*_*', 
         'drop *_kt6GenJets_*_*', 
