@@ -14,7 +14,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 ME0RecHitBaseAlgo::ME0RecHitBaseAlgo(const edm::ParameterSet& config) {
-  recOnlyMuons = config.getParameter<bool>("recOnlyMuons");
+  recOnlyMuons  = config.getParameter<bool>("recOnlyMuons");
+  recOnlyPrompt = config.getParameter<bool>("recOnlyPrompt");
 }
 
 ME0RecHitBaseAlgo::~ME0RecHitBaseAlgo(){}
@@ -34,6 +35,7 @@ const ME0DigiPreRecoCollection::Range& digiRange){
     bool OK = this->compute(*digi, point, tmpErr);
     if (!OK) continue;
     if (recOnlyMuons && std::abs(digi->pdgid()) != 13)  continue;
+    if (recOnlyPrompt && !digi->prompt())  continue;
 
     ME0RecHit* recHit = new ME0RecHit(me0Id,digi->tof(),point,tmpErr);
     result.push_back(recHit);
