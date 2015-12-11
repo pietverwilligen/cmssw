@@ -4,6 +4,8 @@
 
 #include <DataFormats/MuonDetId/interface/ME0DetId.h>
 #include <DataFormats/MuonDetId/interface/MuonSubdetId.h> 
+#include <iostream>
+#include <iomanip>
 
 ME0DetId::ME0DetId():DetId(DetId::Muon, MuonSubdetId::ME0){}
 
@@ -64,9 +66,9 @@ ME0DetId::init(int region,int layer,int chamber,int roll)
 std::ostream& operator<<( std::ostream& os, const ME0DetId& id ){
 
 
-  os <<  " Region "<<id.region()
-     << " Layer "<<id.layer()
-     << " Chamber "<<id.chamber()
+  os <<  " Region "<<std::showpos<<id.region()
+     << " Layer "  <<id.layer()
+     << " Chamber "<<std::setw(2)<<id.chamber()
      << " EtaPartition "<<id.roll()
      <<" ";
 
