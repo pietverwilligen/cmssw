@@ -59,5 +59,6 @@ class ME0RecHitBaseAlgo {
                        LocalError& error) const = 0;
 
   bool recOnlyMuons;
+  bool recOnlyPrompt;
 };
 #endif
