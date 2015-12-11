@@ -4,6 +4,7 @@
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreReco.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "CLHEP/Random/RandomEngine.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGaussQ.h"
@@ -59,6 +60,9 @@ void ME0PreRecoGaussianModel::simulateSignal(const ME0EtaPartition* roll, const 
   {
     // Digitize only Muons?
     if (std::abs(hit.particleType()) != 13 && digitizeOnlyMuons_) continue;
+    // Digitize only in [minBunch,maxBunch] window
+    // window is: [(2n-1)*bxw/2, (2n+1)*bxw/2], n = [minBunch, maxBunch]
+    if(hit.timeOfFlight() < (2*minBunch_-1)*bxwidth*1.0/2 || hit.timeOfFlight() > (2*maxBunch_+1)*bxwidth*1.0/2) continue;
     // is GEM efficient?
     if (flat1_->fire(1) > averageEfficiency_) continue;
     // create digi
@@ -66,7 +70,7 @@ void ME0PreRecoGaussianModel::simulateSignal(const ME0EtaPartition* roll, const 
     double x=0.0, y=0.0;
     if(gaussianSmearing_) { // Gaussian Smearing
       x=gauss_->fire(entry.x(), sigma_u);
-      y=gauss_->fire(entry.x(), sigma_u);
+      y=gauss_->fire(entry.y(), sigma_v);
     }
     else { // Uniform Smearing ... use the sigmas as boundaries
       x=entry.x()+(flat1_->fire(0., 1.)-0.5)*sigma_u;
@@ -77,8 +81,15 @@ void ME0PreRecoGaussianModel::simulateSignal(const ME0EtaPartition* roll, const 
     double corr = 0.;
     double tof = gauss_->fire(hit.timeOfFlight(), sigma_t);
     int pdgid = hit.particleType();
-    ME0DigiPreReco digi(x, y, ex, ey, corr, tof, pdgid);
+    ME0DigiPreReco digi(x, y, ex, ey, corr, tof, pdgid, 1);
     digi_.insert(digi);
+    edm::LogVerbatim("ME0PreRecoGaussianModel") << "[ME0PreRecoDigi :: simulateSignal] :: simhit in "<<roll->id()<<" at loc x = "<<std::setw(8)<<entry.x()<<" [cm]"
+						<< " loc y = "<<std::setw(8)<<entry.y()<<" [cm] time = "<<std::setw(8)<<hit.timeOfFlight()<<" [ns] pdgid = "<<std::showpos<<std::setw(4)<<pdgid;
+    edm::LogVerbatim("ME0PreRecoGaussianModel") << "[ME0PreRecoDigi :: simulateSignal] :: digi   in "<<roll->id()<<" at loc x = "<<std::setw(8)<<x<<" [cm] loc y = "<<std::setw(8)<<y<<" [cm]"
+						<<" time = "<<std::setw(8)<<tof<<" [ns]";
+    edm::LogVerbatim("ME0PreRecoGaussianModel") << "[ME0PreRecoDigi :: simulateSignal] :: digi   in "<<roll->id()<<" with DX = "<<std::setw(8)<<(entry.x()-x)<<" [cm]"
+						<<" DY = "<<std::setw(8)<<(entry.y()-y)<<" [cm] DT = "<<std::setw(8)<<(hit.timeOfFlight()-tof)<<" [ns]";
+
   }
 }
 void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
@@ -98,6 +109,9 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
   double rollRadius = top_->radius();
   trArea = height * (topLength + bottomLength) / 2.0;
 
+  edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise] :: extracting parameters from the TrapezoidalStripTopology";
+  edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise] :: bottom = "<<bottomLength<<" [cm] top  = "<<topLength<<" [cm] height = "<<height
+					      <<" [cm] radius = "<<rollRadius<<" [cm]" ;
   // simulate intrinsic noise and background hits in all BX that are being read out
   for(int bx=minBunch_; bx<maxBunch_+1; ++bx) {
 
@@ -116,7 +130,7 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 
       double myRandY = flat2_->fire(0., 1.);
       double yy_rand = height * (myRandY - 0.5); // random Y coord in Local Coords
-      double yy_glob = rollRadius + yy_rand;     // random Y coord in Global Coords
+      double yy_glob = rollRadius + yy_rand;     // random R coord in Global Coords
 
       // Extract / Calculate the Average Electron Rate 
       // for the given global Y coord from Parametrization
@@ -127,6 +141,10 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
       // Rate [Hz/cm^2] * 25*10^-9 [s] * Area [cm] = # hits in this roll 
       const double averageElecRate(averageElectronRatePerRoll * (bxwidth*1.0e-9) * trArea); 
       int n_elechits(poisson_->fire(averageElecRate));
+
+      edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise :: ele bkg] :: myRandY = "<<std::setw(12)<<myRandY<<" => local y = "<<std::setw(12)<<yy_rand<<" [cm]"
+						       <<" => global y (global R) = "<<std::setw(12)<<yy_glob<<" [cm] || Probability = "<<std::setw(12)<<averageElecRate
+						       <<" => efficient? "<<n_elechits<<std::endl;
 
       // max length in x for given y coordinate (cfr trapezoidal eta partition)
       double xMax = topLength/2.0 - (height/2.0 - yy_rand) * myTanPhi;
@@ -147,8 +165,11 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 	int pdgid = 0;
 	if (myrandP <= 0.5) pdgid = -11; // electron
 	else 	            pdgid = 11;  // positron
-	ME0DigiPreReco digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid);
+	ME0DigiPreReco digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid, 0);
 	digi_.insert(digi);
+	edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise :: ele bkg] :: electron hit in "<<roll->id()<<" pdgid = "<<pdgid<<" bx = "<<bx
+							 <<" ==> digitized"
+							 <<" at loc x = "<<xx_rand<<" loc y = "<<yy_rand<<" time = "<<time<<" [ns]"; 
       }
     }
 
@@ -170,6 +191,10 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
       const double averageNeutrRate(averageNeutralRatePerRoll * (bxwidth*1.0e-9) * trArea);
       int n_hits(poisson_->fire(averageNeutrRate));
 
+      edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise :: neu bkg] :: myRandY = "<<std::setw(12)<<myRandY<<" => local y = "<<std::setw(12)<<yy_rand<<" [cm]"
+						       <<" => global y (global R) = "<<std::setw(12)<<yy_glob<<" [cm] || Probability "<<std::setw(12)<<averageNeutrRate
+						       <<" => efficient? "<<n_hits<<std::endl;
+
       // max length in x for given y coordinate (cfr trapezoidal eta partition)
       double xMax = topLength/2.0 - (height/2.0 - yy_rand) * myTanPhi;
 
@@ -189,8 +214,11 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
         double myrandP = flat1_->fire(0., 1.);
         if (myrandP <= 0.08) pdgid = 2112; // neutrons: GEM sensitivity for neutrons: 0.08%
         else                 pdgid = 22;   // photons:  GEM sensitivity for photons:  1.04% ==> neutron fraction = (0.08 / 1.04) = 0.077 = 0.08
-        ME0DigiPreReco digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid);
+        ME0DigiPreReco digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid, 0);
         digi_.insert(digi);
+	edm::LogVerbatim("ME0PreRecoGaussianModelNoise") << "[ME0PreRecoDigi :: simulateNoise :: neu bkg] :: neutral hit in "<<roll->id()<<" pdgid = "<<pdgid<<" bx = "<<bx
+							 <<" ==> digitized"
+							 <<" at loc x = "<<xx_rand<<" loc y = "<<yy_rand<<" time = "<<time<<" [ns]"; 
       }
     }
 
