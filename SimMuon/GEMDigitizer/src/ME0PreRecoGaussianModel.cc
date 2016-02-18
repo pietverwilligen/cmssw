@@ -14,7 +14,6 @@
 #include <map>
 
 
-const double cspeed = 29.9792458; // [cm/ns]
 const int bxwidth   = 25;         // [ns]
 
 ME0PreRecoGaussianModel::ME0PreRecoGaussianModel(const edm::ParameterSet& config) :
@@ -22,11 +21,13 @@ ME0PreRecoGaussianModel::ME0PreRecoGaussianModel(const edm::ParameterSet& config
     sigma_t(config.getParameter<double>("timeResolution")), 
     sigma_u(config.getParameter<double>("phiResolution")), 
     sigma_v(config.getParameter<double>("etaResolution")), 
+    gaussianSmearing_(config.getParameter<bool>("gaussianSmearing")),
+    constPhiSmearing_(config.getParameter<bool>("constantPhiSpatialResolution")),
     corr(config.getParameter<bool>("useCorrelation")), 
     etaproj(config.getParameter<bool>("useEtaProjectiveGEO")), 
-    digitizeOnlyMuons_(config.getParameter<bool>("digitizeOnlyMuons")), 
-    gaussianSmearing_(config.getParameter<bool>("gaussianSmearing")),
-    averageEfficiency_(config.getParameter<double>("averageEfficiency")), 
+    digitizeOnlyMuons_(config.getParameter<bool>("digitizeOnlyMuons")),
+    // mergeClosebyDigis_(config.getParameter<bool>("mergeClosebyDigis")), 
+    averageEfficiency_(config.getParameter<double>("averageEfficiency")),
     // simulateIntrinsicNoise_(config.getParameter<bool>("simulateIntrinsicNoise")),
     // averageNoiseRate_(config.getParameter<double>("averageNoiseRate")), 
     simulateElectronBkg_(config.getParameter<bool>("simulateElectronBkg")), 
@@ -68,15 +69,19 @@ void ME0PreRecoGaussianModel::simulateSignal(const ME0EtaPartition* roll, const 
     // create digi
     auto entry = hit.entryPoint();
     double x=0.0, y=0.0;
+
+    double sigma_u_new = sigma_u;
+    if(constPhiSmearing_) sigma_u_new = correctSigmaU(roll, entry.y());
+
     if(gaussianSmearing_) { // Gaussian Smearing
-      x=gauss_->fire(entry.x(), sigma_u);
+      x=gauss_->fire(entry.x(), sigma_u_new);
       y=gauss_->fire(entry.y(), sigma_v);
     }
     else { // Uniform Smearing ... use the sigmas as boundaries
-      x=entry.x()+(flat1_->fire(0., 1.)-0.5)*sigma_u;
+      x=entry.x()+(flat1_->fire(0., 1.)-0.5)*sigma_u_new;
       y=entry.y()+(flat1_->fire(0., 1.)-0.5)*sigma_v;
     }
-    double ex = sigma_u;
+    double ex = sigma_u_new;
     double ey = sigma_v;
     double corr = 0.;
     double tof = gauss_->fire(hit.timeOfFlight(), sigma_t);
@@ -186,6 +191,7 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 	double myRandX = flat1_->fire(0., 1.);
 	double xx_rand = 2 * xMax * (myRandX - 0.5);
 	double ex = sigma_u;
+	if(constPhiSmearing_) ex = correctSigmaU(roll, yy_rand);
 	double ey = sigma_v;
 	double corr = 0.;
 	// extract random BX
@@ -237,6 +243,7 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 	double myRandX = flat1_->fire(0., 1.);
 	double xx_rand = 2 * xMax * (myRandX - 0.5);
 	double ex = sigma_u;
+	if(constPhiSmearing_) ex = correctSigmaU(roll, yy_rand);
 	double ey = sigma_v;
 	double corr = 0.;
 	// extract random BX
@@ -263,3 +270,13 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll)
   } // end loop over strips (= pseudo rolls)
 }
 
+double ME0PreRecoGaussianModel::correctSigmaU(const ME0EtaPartition* roll, double y) {
+  const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll->topology())));
+  auto& parameters(roll->specs()->parameters());
+  double height(parameters[2]);       // height     = height from Center of Roll
+  double rollRadius = top_->radius(); // rollRadius = Radius at Center of Roll
+  double Rmax = rollRadius+height;    // MaxRadius  = Radius at top of Roll
+  double Rx = rollRadius+y;           // y in [-height,+height]
+  double sigma_u_new = Rx/Rmax*sigma_u;
+  return sigma_u_new;
+}
