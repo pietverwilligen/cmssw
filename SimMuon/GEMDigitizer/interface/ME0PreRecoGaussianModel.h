@@ -22,6 +22,8 @@ public:
   void simulateSignal(const ME0EtaPartition*, const edm::PSimHitContainer&);
   void setRandomEngine(CLHEP::HepRandomEngine&);
   void simulateNoise(const ME0EtaPartition*);
+  void mergeDigis(ME0DigiPreRecoCollection&);
+  double correctSigmaU(const ME0EtaPartition*, double);
   void setup()
   {
   }
@@ -29,10 +31,12 @@ private:
   double sigma_t;
   double sigma_u;
   double sigma_v;
+  double gaussianSmearing_;
+  double constPhiSmearing_;
   bool corr;
   bool etaproj;
   bool digitizeOnlyMuons_;
-  double gaussianSmearing_;
+  // bool mergeClosebyDigis_;
   double averageEfficiency_;
   // bool simulateIntrinsicNoise_; // not implemented
   // double averageNoiseRate_;     // not implemented
