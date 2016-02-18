@@ -20,15 +20,21 @@
 
 // ToDo ::
 //         - dX, dY and dPhi for the NewMatch_AllME0
-//         - implement matching for the tracker track
+//         - dPhi, dEta for all categories (NoMatch, NewMatch) on the segment (so give it a name "_ME0Segment_" instead of "_ME0Reco_")
 //         - simple efficiency bookkeeper: TH1F with several categories: # all simtracks in ME0, # all matched ME0, # all matched loose ME0, all matched tight ME0
-//         - write in Twiki that we need campaign v4 to get rid of exessive Out-of-Time PU
-//
-//         - debug vertex efficiencies ... already in first processed event (ev4) there is already something going on ...
+
+//         - implement matching for the tracker track
+//         - change matching for ME0 Segment from Old Matching to New Matching
 //         - implement RPC Matching ... some muons in the Barrel need it
 //         - Investigate matching ... seems i am matching out of time ME0Segments with in time ME0SimHits ???
+
+//         - try to select some events where we fail to reconstruct / match the right ME0 Muon
+//           --> then look at the ME0Segment and see how we can improve this ...
+//
+//         - debug vertex efficiencies ... already in first processed event (ev4) there is already something going on ...
 //         - Plot SimHit Time Resolution ... this is an inherent resolution, a smearing on top of the detector time resolution smearing
 //         - Plot Quantities for all ME0Segments reconstructed ... for instance the SegTimeCreation
+
 //         - Sort also in function of PT in case quality is the same ...
 //           |--> study lambda functions
 //           |--> implement a class for my std::vector<int,int>
@@ -100,7 +106,12 @@
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h" 
+#include "Geometry/TrackerGeometryBuilder/interface/PixelGeomDetUnit.h"
+#include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 
@@ -137,6 +148,8 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   // bool sortME0muons (const std::pair<int,int>::iterator, const std::pair<int,int>::iterator);
   bool checkVector(std::vector<int>&, int);
   double maxTimeSpan(const std::vector<ME0RecHit>);
+  double maxDPhi(const std::vector<ME0RecHit>);
+  double maxDEta(const std::vector<ME0RecHit>);
   GlobalPoint AverageHitPos(const std::vector<ME0RecHit>);
   // Output Files / TFile Service
   // edm::Service<TFileService> fs;
@@ -160,7 +173,9 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
 
   edm::ESHandle<ME0Geometry> me0Geom;
   edm::ESHandle<CSCGeometry> cscGeom;
-  edm::ESHandle<DTGeometry> dtGeom;
+  edm::ESHandle<DTGeometry>  dtGeom;
+  edm::ESHandle<RPCGeometry> rpcGeom;
+  edm::ESHandle<TrackerGeometry> tkGeom;
 
   const MagneticField* magField_;
   edm::ESHandle<MagneticField> magFieldHandle_;
@@ -197,6 +212,8 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::vector< std::map<uint32_t, std::vector<const PSimHit*> > > me0simhitmap;
   std::vector< std::map<uint32_t, std::vector<const PSimHit*> > > cscsimhitmap;
   std::vector< std::map<uint32_t, std::vector<const PSimHit*> > > dtsimhitmap;
+  // std::vector< std::map<uint32_t, std::vector<const PSimHit*> > > rpcsimhitmap;
+  std::vector< std::map<uint32_t, std::vector<const PSimHit*> > > tksimhitmap;
   // -------------------------------------------------------------------------------
 
 
@@ -247,6 +264,7 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::unique_ptr<TH1F> NoMatch_AllME0Mu_TrackETADistr_5GeV, NoMatch_AllME0Mu_ETAResolution_5GeV;
   std::unique_ptr<TH1F> NoMatch_AllME0Mu_dz, NoMatch_AllME0Mu_dxy;
   std::unique_ptr<TH1F> NoMatch_AllME0Mu_ME0Reco_dX, NoMatch_AllME0Mu_ME0Reco_dY, NoMatch_AllME0Mu_ME0Reco_dPhi;
+  std::unique_ptr<TH1F> NoMatch_AllME0Mu_ME0Segm_maxdEta, NoMatch_AllME0Mu_ME0Segm_maxdPhi;
   // -------------------------------------
 
   // --- All ME0 Muons & Tight ----------
@@ -257,6 +275,8 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::unique_ptr<TH2F> NoMatch_TightME0Mu_SegPHIvsSimPT, NoMatch_TightME0Mu_ETAvsETARes, NoMatch_TightME0Mu_PTvsETARes, NoMatch_TightME0Mu_ETAvsETARes_5GeV;
   std::unique_ptr<TH1F> NoMatch_TightME0Mu_TrackETADistr_5GeV, NoMatch_TightME0Mu_ETAResolution_5GeV;
   std::unique_ptr<TH1F> NoMatch_TightME0Mu_dz, NoMatch_TightME0Mu_dxy;
+  std::unique_ptr<TH1F> NoMatch_TightME0Mu_ME0Reco_dX, NoMatch_TightME0Mu_ME0Reco_dY, NoMatch_TightME0Mu_ME0Reco_dPhi;
+  std::unique_ptr<TH1F> NoMatch_TightME0Mu_ME0Segm_maxdEta, NoMatch_TightME0Mu_ME0Segm_maxdPhi;
   // -------------------------------------
 
   // --- Matched by Hits : All ---------
@@ -266,6 +286,8 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::unique_ptr<TH1F> NewMatch_AllME0Mu_SegETADir, NewMatch_AllME0Mu_SegETAPos, NewMatch_AllME0Mu_SegPHIDir, NewMatch_AllME0Mu_SegPHIPos;
   std::unique_ptr<TH2F> NewMatch_AllME0Mu_SegPHIvsSimPT, NewMatch_AllME0Mu_ETAvsETARes, NewMatch_AllME0Mu_PTvsETARes;
   std::unique_ptr<TH1F> NewMatch_AllME0Mu_dz, NewMatch_AllME0Mu_dxy;
+  std::unique_ptr<TH1F> NewMatch_AllME0Mu_ME0Reco_dX, NewMatch_AllME0Mu_ME0Reco_dY, NewMatch_AllME0Mu_ME0Reco_dPhi;
+  std::unique_ptr<TH1F> NewMatch_AllME0Mu_ME0Segm_maxdEta, NewMatch_AllME0Mu_ME0Segm_maxdPhi;
   // -------------------------------------
 
   // --- Matched by Hits & Loose ---------
@@ -276,6 +298,7 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::unique_ptr<TH2F> NewMatch_LooseME0Mu_SegPHIvsSimPT, NewMatch_LooseME0Mu_ETAvsETARes, NewMatch_LooseME0Mu_PTvsETARes;
   std::unique_ptr<TH1F> NewMatch_LooseME0Mu_dz, NewMatch_LooseME0Mu_dxy;
   std::unique_ptr<TH1F> NewMatch_LooseME0Mu_ME0Reco_dX, NewMatch_LooseME0Mu_ME0Reco_dY, NewMatch_LooseME0Mu_ME0Reco_dPhi;
+  std::unique_ptr<TH1F> NewMatch_LooseME0Mu_ME0Segm_maxdEta, NewMatch_LooseME0Mu_ME0Segm_maxdPhi;
   // -------------------------------------
 
   // --- Matched by Hits & Tight ---------
@@ -287,6 +310,7 @@ class MyME0InTimePUAnalyzer : public edm::EDAnalyzer {
   std::unique_ptr<TH1F> NewMatch_TightME0Mu_TrackETADistr_5GeV, NewMatch_TightME0Mu_ETAResolution_5GeV;
   std::unique_ptr<TH1F> NewMatch_TightME0Mu_dz, NewMatch_TightME0Mu_dxy;
   std::unique_ptr<TH1F> NewMatch_TightME0Mu_ME0Reco_dX, NewMatch_TightME0Mu_ME0Reco_dY, NewMatch_TightME0Mu_ME0Reco_dPhi;
+  std::unique_ptr<TH1F> NewMatch_TightME0Mu_ME0Segm_maxdEta, NewMatch_TightME0Mu_ME0Segm_maxdPhi;
   // -------------------------------------
 
   // --- Statistics ----------------------
@@ -441,7 +465,7 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   HitRate_SIM_Electrons_T  = std::unique_ptr<TH1F>(new TH1F("HitRate_SIM_Electrons_T",  "HitRate_SIM_Electrons_T",  5000, -350, 150));
   HitRate_SIM_Muons_T      = std::unique_ptr<TH1F>(new TH1F("HitRate_SIM_Muons_T",      "HitRate_SIM_Muons_T",      5000, -350, 150));
   HitRate_SIM_Hadrons_T    = std::unique_ptr<TH1F>(new TH1F("HitRate_SIM_Hadrons_T",    "HitRate_SIM_Hadrons_T",    5000, -350, 150));
-  // ----------- DIGI = Prompt + Bkg -----
+  // ----------- DIGI = Prompt + N Bkg ---
   HitRate_DIGI_Photons_R   = std::unique_ptr<TH1F>(new TH1F("HitRate_DIGI_Photons_R",   "HitRate_DIGI_Photons_R",   300,    50, 200));
   HitRate_DIGI_Electrons_R = std::unique_ptr<TH1F>(new TH1F("HitRate_DIGI_Electrons_R", "HitRate_DIGI_Electrons_R", 300,    50, 200));
   HitRate_DIGI_Neutrons_R  = std::unique_ptr<TH1F>(new TH1F("HitRate_DIGI_Neutrons_R",  "HitRate_DIGI_Neutrons_R",  300,    50, 200));
@@ -493,6 +517,11 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   NoMatch_AllME0Mu_PTvsETARes      = std::unique_ptr<TH2F>(new TH2F("NoMatch_AllME0Mu_PTvsETARes",      "NoMatch_AllME0Mu_PTvsETARes",100,0.00,100,40,-1.00,1.00));
   NoMatch_AllME0Mu_dz              = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_dz",              "NoMatch_AllME0Mu_dz",        100, -5.0,5.0));
   NoMatch_AllME0Mu_dxy             = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_dxy",             "NoMatch_AllME0Mu_dxy",       100, -1.0,1.0));
+  NoMatch_AllME0Mu_ME0Reco_dX        = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dX",       "NoMatch_AllME0Mu_ME0Reco_dX",  100,  0.0,5.0));
+  NoMatch_AllME0Mu_ME0Reco_dY        = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dY",       "NoMatch_AllME0Mu_ME0Reco_dY",  100,  0.0,20.0));
+  NoMatch_AllME0Mu_ME0Reco_dPhi      = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dPhi",     "NoMatch_AllME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NoMatch_AllME0Mu_ME0Segm_maxdPhi      = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Segm_maxdPhi",     "NoMatch_AllME0Mu_ME0Segm_maxdPhi", 50,  0.0,0.05));
+  NoMatch_AllME0Mu_ME0Segm_maxdEta      = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Segm_maxdEta",     "NoMatch_AllME0Mu_ME0Segm_maxdEta", 50,  0.0,0.05));
   // -------------------------------------
 
   // --- All ME0 Muons & Tight -----------
@@ -523,9 +552,11 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   NoMatch_TightME0Mu_PTvsETARes      = std::unique_ptr<TH2F>(new TH2F("NoMatch_TightME0Mu_PTvsETARes",     "NoMatch_TightME0Mu_PTvsETARes",100, 0.00,100,40,-1.00,1.00));
   NoMatch_TightME0Mu_dz              = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_dz",             "NoMatch_TightME0Mu_dz",        100, -5.0,5.0));
   NoMatch_TightME0Mu_dxy             = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_dxy",            "NoMatch_TightME0Mu_dxy",       100, -1.0,1.0));
-  NoMatch_AllME0Mu_ME0Reco_dX        = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dX",       "NoMatch_AllME0Mu_ME0Reco_dX",  100,  0.0,5.0));
-  NoMatch_AllME0Mu_ME0Reco_dY        = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dY",       "NoMatch_AllME0Mu_ME0Reco_dY",  100,  0.0,20.0));
-  NoMatch_AllME0Mu_ME0Reco_dPhi      = std::unique_ptr<TH1F>(new TH1F("NoMatch_AllME0Mu_ME0Reco_dPhi",     "NoMatch_AllME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NoMatch_TightME0Mu_ME0Reco_dX      = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_ME0Reco_dX",     "NoMatch_TightME0Mu_ME0Reco_dX",  100,  0.0,5.0));
+  NoMatch_TightME0Mu_ME0Reco_dY      = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_ME0Reco_dY",     "NoMatch_TightME0Mu_ME0Reco_dY",  100,  0.0,20.0));
+  NoMatch_TightME0Mu_ME0Reco_dPhi    = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_ME0Reco_dPhi",   "NoMatch_TightME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NoMatch_TightME0Mu_ME0Segm_maxdPhi    = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_ME0Segm_maxdPhi",   "NoMatch_TightME0Mu_ME0Segm_maxdPhi", 50,  0.0,0.05));
+  NoMatch_TightME0Mu_ME0Segm_maxdEta    = std::unique_ptr<TH1F>(new TH1F("NoMatch_TightME0Mu_ME0Segm_maxdEta",   "NoMatch_TightME0Mu_ME0Segm_maxdEta", 50,  0.0,0.05));
   // -------------------------------------
 
   // --- Matched by Hits : All -----------
@@ -555,6 +586,11 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   NewMatch_AllME0Mu_InvariantMass_2RecoMu     = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_InvariantMass_2RecoMu",     "NewMatch_AllME0Mu_InvariantMass_2RecoMu",      300, 000,150));
   NewMatch_AllME0Mu_dz              = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_dz",              "NewMatch_AllME0Mu_dz",        100, -5.0,5.0));
   NewMatch_AllME0Mu_dxy             = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_dxy",             "NewMatch_AllME0Mu_dxy",       100, -1.0,1.0));
+  NewMatch_AllME0Mu_ME0Reco_dX      = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_ME0Reco_dX",       "NewMatch_AllME0Mu_ME0Reco_dX",  100,  0.0,5.0));
+  NewMatch_AllME0Mu_ME0Reco_dY      = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_ME0Reco_dY",       "NewMatch_AllME0Mu_ME0Reco_dY",  100,  0.0,20.0));
+  NewMatch_AllME0Mu_ME0Reco_dPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_ME0Reco_dPhi",     "NewMatch_AllME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NewMatch_AllME0Mu_ME0Segm_maxdPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_ME0Segm_maxdPhi",     "NewMatch_AllME0Mu_ME0Segm_maxdPhi", 50,  0.0,0.05));
+  NewMatch_AllME0Mu_ME0Segm_maxdEta    = std::unique_ptr<TH1F>(new TH1F("NewMatch_AllME0Mu_ME0Segm_maxdEta",     "NewMatch_AllME0Mu_ME0Segm_maxdEta", 50,  0.0,0.05));
   // -------------------------------------
 
   // --- Matched by Hits & Loose ---------
@@ -587,6 +623,8 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   NewMatch_LooseME0Mu_ME0Reco_dX      = std::unique_ptr<TH1F>(new TH1F("NewMatch_LooseME0Mu_ME0Reco_dX",       "NewMatch_LooseME0Mu_ME0Reco_dX",  100,  0.0,5.0));
   NewMatch_LooseME0Mu_ME0Reco_dY      = std::unique_ptr<TH1F>(new TH1F("NewMatch_LooseME0Mu_ME0Reco_dY",       "NewMatch_LooseME0Mu_ME0Reco_dY",  100,  0.0,20.0));
   NewMatch_LooseME0Mu_ME0Reco_dPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_LooseME0Mu_ME0Reco_dPhi",     "NewMatch_LooseME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NewMatch_LooseME0Mu_ME0Segm_maxdPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_LooseME0Mu_ME0Segm_maxdPhi",     "NewMatch_LooseME0Mu_ME0Segm_maxdPhi", 50,  0.0,0.05));
+  NewMatch_LooseME0Mu_ME0Segm_maxdEta    = std::unique_ptr<TH1F>(new TH1F("NewMatch_LooseME0Mu_ME0Segm_maxdEta",     "NewMatch_LooseME0Mu_ME0Segm_maxdEta", 50,  0.0,0.05));
   // -------------------------------------
 
   // --- Matched by Hits & Tight ---------
@@ -621,6 +659,8 @@ MyME0InTimePUAnalyzer::MyME0InTimePUAnalyzer(const edm::ParameterSet& iConfig)
   NewMatch_TightME0Mu_ME0Reco_dX      = std::unique_ptr<TH1F>(new TH1F("NewMatch_TightME0Mu_ME0Reco_dX",       "NewMatch_TightME0Mu_ME0Reco_dX",  100,  0.0,5.0));
   NewMatch_TightME0Mu_ME0Reco_dY      = std::unique_ptr<TH1F>(new TH1F("NewMatch_TightME0Mu_ME0Reco_dY",       "NewMatch_TightME0Mu_ME0Reco_dY",  100,  0.0,20.0));
   NewMatch_TightME0Mu_ME0Reco_dPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_TightME0Mu_ME0Reco_dPhi",     "NewMatch_TightME0Mu_ME0Reco_dPhi", 72,  0.0,3.14));
+  NewMatch_TightME0Mu_ME0Segm_maxdPhi    = std::unique_ptr<TH1F>(new TH1F("NewMatch_TightME0Mu_ME0Segm_maxdPhi",     "NewMatch_TightME0Mu_ME0Segm_maxdPhi", 50,  0.0,0.05));
+  NewMatch_TightME0Mu_ME0Segm_maxdEta    = std::unique_ptr<TH1F>(new TH1F("NewMatch_TightME0Mu_ME0Segm_maxdEta",     "NewMatch_TightME0Mu_ME0Segm_maxdEta", 50,  0.0,0.05));
   // -------------------------------------
 
   // --- In Time PU Analysis -------------
@@ -737,6 +777,7 @@ MyME0InTimePUAnalyzer::~MyME0InTimePUAnalyzer()
   NoMatch_AllME0Mu_TrackETADistr->Write(); NoMatch_AllME0Mu_TrackETADistr_5GeV->Write(); NoMatch_AllME0Mu_TrackPHIDistr->Write(); NoMatch_AllME0Mu_NumbME0Muons->Write(); NoMatch_AllME0Mu_NumbME0Segments->Write();
   NoMatch_AllME0Mu_SegETADir->Write(); NoMatch_AllME0Mu_SegETAPos->Write(); NoMatch_AllME0Mu_SegPHIDir->Write(); NoMatch_AllME0Mu_SegPHIPos->Write(); NoMatch_AllME0Mu_dz->Write();        NoMatch_AllME0Mu_dxy->Write();
   NoMatch_AllME0Mu_ME0Reco_dX->Write(); NoMatch_AllME0Mu_ME0Reco_dY->Write(); NoMatch_AllME0Mu_ME0Reco_dPhi->Write();
+  NoMatch_AllME0Mu_ME0Segm_maxdPhi->Write(); NoMatch_AllME0Mu_ME0Segm_maxdEta->Write();
   outputfile->cd();
 
   NoMatch_TightME0Mu->cd();
@@ -745,6 +786,8 @@ MyME0InTimePUAnalyzer::~MyME0InTimePUAnalyzer()
   NoMatch_TightME0Mu_SegPHIvsSimPT->Write(); NoMatch_TightME0Mu_ETAvsETARes->Write(); NoMatch_TightME0Mu_PTvsETARes->Write(); NoMatch_TightME0Mu_ETAvsETARes_5GeV->Write();
   NoMatch_TightME0Mu_TrackETADistr->Write(); NoMatch_TightME0Mu_TrackETADistr_5GeV->Write(); NoMatch_TightME0Mu_TrackPHIDistr->Write(); NoMatch_TightME0Mu_NumbME0Muons->Write(); NoMatch_TightME0Mu_NumbME0Segments->Write();
   NoMatch_TightME0Mu_SegETADir->Write(); NoMatch_TightME0Mu_SegETAPos->Write(); NoMatch_TightME0Mu_SegPHIDir->Write(); NoMatch_TightME0Mu_SegPHIPos->Write(); NoMatch_TightME0Mu_dz->Write();        NoMatch_TightME0Mu_dxy->Write();
+  NoMatch_TightME0Mu_ME0Reco_dX->Write(); NoMatch_TightME0Mu_ME0Reco_dY->Write(); NoMatch_TightME0Mu_ME0Reco_dPhi->Write();
+  NoMatch_TightME0Mu_ME0Segm_maxdPhi->Write(); NoMatch_TightME0Mu_ME0Segm_maxdEta->Write();
   outputfile->cd();
 
   NewMatch_Details->cd();
@@ -760,6 +803,8 @@ MyME0InTimePUAnalyzer::~MyME0InTimePUAnalyzer()
   NewMatch_AllME0Mu_SegETADir->Write(); NewMatch_AllME0Mu_SegETAPos->Write(); NewMatch_AllME0Mu_SegPHIDir->Write(); NewMatch_AllME0Mu_SegPHIPos->Write();
   NewMatch_AllME0Mu_InvariantMass_All->Write(); NewMatch_AllME0Mu_InvariantMass_2ME0Mu->Write(); NewMatch_AllME0Mu_InvariantMass_ME0MuRecoMu->Write(); NewMatch_AllME0Mu_InvariantMass_2RecoMu->Write(); 
   NewMatch_AllME0Mu_dz->Write(); NewMatch_AllME0Mu_dxy->Write();
+  NewMatch_AllME0Mu_ME0Reco_dX->Write(); NewMatch_AllME0Mu_ME0Reco_dY->Write(); NewMatch_AllME0Mu_ME0Reco_dPhi->Write();
+  NewMatch_AllME0Mu_ME0Segm_maxdPhi->Write(); NewMatch_AllME0Mu_ME0Segm_maxdEta->Write();
   outputfile->cd();
 
   NewMatch_LooseME0Mu->cd();
@@ -771,6 +816,7 @@ MyME0InTimePUAnalyzer::~MyME0InTimePUAnalyzer()
   NewMatch_LooseME0Mu_InvariantMass_All->Write(); NewMatch_LooseME0Mu_InvariantMass_2ME0Mu->Write(); NewMatch_LooseME0Mu_InvariantMass_ME0MuRecoMu->Write(); NewMatch_LooseME0Mu_InvariantMass_2RecoMu->Write(); 
   NewMatch_LooseME0Mu_dz->Write(); NewMatch_LooseME0Mu_dxy->Write();
   NewMatch_LooseME0Mu_ME0Reco_dX->Write(); NewMatch_LooseME0Mu_ME0Reco_dY->Write(); NewMatch_LooseME0Mu_ME0Reco_dPhi->Write();
+  NewMatch_LooseME0Mu_ME0Segm_maxdPhi->Write(); NewMatch_LooseME0Mu_ME0Segm_maxdEta->Write();
   outputfile->cd();
 
   NewMatch_TightME0Mu->cd();
@@ -783,6 +829,7 @@ MyME0InTimePUAnalyzer::~MyME0InTimePUAnalyzer()
   NewMatch_TightME0Mu_InvariantMass_All->Write(); NewMatch_TightME0Mu_InvariantMass_2ME0Mu->Write(); NewMatch_TightME0Mu_InvariantMass_ME0MuRecoMu->Write(); NewMatch_TightME0Mu_InvariantMass_2RecoMu->Write(); 
   NewMatch_TightME0Mu_dz->Write(); NewMatch_TightME0Mu_dxy->Write();
   NewMatch_TightME0Mu_ME0Reco_dX->Write(); NewMatch_TightME0Mu_ME0Reco_dY->Write(); NewMatch_TightME0Mu_ME0Reco_dPhi->Write();
+  NewMatch_TightME0Mu_ME0Segm_maxdPhi->Write(); NewMatch_TightME0Mu_ME0Segm_maxdEta->Write();
   outputfile->cd();
 
   InTimePUAnalysis->cd();
@@ -854,6 +901,7 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   iSetup.get<MuonGeometryRecord>().get(me0Geom);
   iSetup.get<MuonGeometryRecord>().get(cscGeom);
   iSetup.get<MuonGeometryRecord>().get(dtGeom);
+  iSetup.get<TrackerDigiGeometryRecord>().get(tkGeom);
   // ----------------------
   iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle_);
   magField_ = magFieldHandle_.product();
@@ -1112,6 +1160,8 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     std::map<uint32_t, std::vector<const PSimHit*> > tmpmap1; me0simhitmap.push_back(tmpmap1);
     std::map<uint32_t, std::vector<const PSimHit*> > tmpmap2; cscsimhitmap.push_back(tmpmap2);
     std::map<uint32_t, std::vector<const PSimHit*> > tmpmap3; dtsimhitmap.push_back(tmpmap3);
+    // std::map<uint32_t, std::vector<const PSimHit*> > tmpmap4; rpcsimhitmap.push_back(tmpmap4);
+    std::map<uint32_t, std::vector<const PSimHit*> > tmpmap5; tksimhitmap.push_back(tmpmap5);
   }
   // --------------------------------------------------------------------
 
@@ -1217,7 +1267,8 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  std::cout<<""<<std::endl;
 	}
       }
-    }
+    } // End ME0
+
     else if(simdetid.det()==DetId::Muon &&  simdetid.subdetId()== MuonSubdetId::CSC){ // Only CSC
       CSCDetId layerId(theDetUnitId);
       GlobalPoint CSCGlobalPoint = cscGeom->idToDet(layerId)->toGlobal((*iHit).localPosition());
@@ -1257,7 +1308,8 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  std::cout<<""<<std::endl;
 	}
       }
-    }
+    } // End CSC
+
     else if(simdetid.det()==DetId::Muon &&  simdetid.subdetId()== MuonSubdetId::DT){ // Only DT
       DTWireId wireId(theDetUnitId);
       GlobalPoint DTGlobalPoint = dtGeom->idToDet(wireId)->toGlobal((*iHit).localPosition());
@@ -1297,7 +1349,49 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  std::cout<<""<<std::endl;
 	}
       }
-    }
+    } // End DT
+
+    else if(simdetid.det()==DetId::Muon &&  simdetid.subdetId()== MuonSubdetId::RPC){ // Only RPC
+    } // End RPC
+
+    else if(simdetid.det()==DetId::Tracker){ // All Tracker
+      // subdetIds are TIB TOB TID TEC PixelBarrel PixelEndcap ... but will try to write some general code
+      DetId detid(theDetUnitId);
+      GlobalPoint TrkGlobalPoint = tkGeom->idToDet(detid)->toGlobal((*iHit).localPosition());
+      // If SimTrack Matches SimHit Mother then save a pointer to the SimHit
+      for(unsigned int i=0; i<indmu.size(); ++i) {
+        if(simhit_trackId == trkmu[i]) {
+	  // --- new method ---
+          // DetId detid = wireId.chamberId();
+	  std::map<uint32_t, std::vector<const PSimHit*> > map = tksimhitmap[i];
+	  std::map<uint32_t, std::vector<const PSimHit*> >::iterator it;
+          it = map.find(detid.rawId());
+          if (it != map.end()) { // detid found in the map
+	    std::vector<const PSimHit*> vec = map[detid.rawId()];
+            vec.push_back(&(*iHit));
+            map[detid.rawId()] = vec;
+          }
+          else{ // detid not found in the map: create entry
+	    std::vector<const PSimHit*> vec;
+            vec.push_back(&(*iHit));
+            map[detid.rawId()] = vec;
+          }
+          tksimhitmap[i] = map;
+          // ------------------                                                     
+	}
+      }
+      if(simhit_trackId == trkmu[0] || simhit_trackId == trkmu[1]) {
+        if(printInfoAll) {
+	  std::cout<<"TRK SimHit in "<<std::setw(12)<<detid.rawId()<<" from simtrack with trackId = "<<std::setw(2)<<(*iHit).trackId();
+	  std::cout<<" | time t = "<<std::setw(12)<<(*iHit).timeOfFlight()<<" | phi = "<<std::setw(12)<<TrkGlobalPoint.phi()<<" | eta = "<<std::setw(12)<<TrkGlobalPoint.eta();
+	  std::cout<<" | global position = "<<TrkGlobalPoint;
+	  std::cout<<""<<std::endl;
+        }
+      }
+    } // End Tracker
+
+
+
     else {}
   }
   // --------------------------------------------------------------------
@@ -1342,7 +1436,30 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
     // 3) Perform Matching based on global position of SimHits and RecHits
-    // Loop first over SimHits => reduce running time
+    /*
+    // Finish Later
+    for(unsigned int i=0; i<indmu.size(); ++i) {
+      int nMatchedSegmentHits = 0, nMatchedTrackHits = 0, matchedGENMu = -1;
+      // inner Track
+      // ----------------------------------------------------------------------
+      trackingRecHit_iterator rhbegin = it->innerTrack().get()->recHitsBegin();
+      trackingRecHit_iterator rhend = it->innerTrack().get()->recHitsEnd();
+      for(trackingRecHit_iterator recHit = rhbegin; recHit != rhend; ++recHit) {
+	DetId detid = DetId((*recHit)->geographicalId());
+	// std::cout<<"Tracking RecHit in DetId "<<detid.rawId()<<" ==> det = "<<detid.det()<<" subdet = "<<detid.subdetId()<<" [Tracker det = "<<DetId::Tracker
+	//          <<" DT subdet = "<<MuonSubdetId::DT<<" CSC subdet = "<<MuonSubdetId::CSC<<" RPC subdet = "<<MuonSubdetId::RPC<<" GEM subdet = "<<MuonSubdetId::GEM<<"]"<<std::endl;
+	// -----------------------------------
+	if(printInfoMuonMatchDetail) std::cout<<"Tracking RecHit in DetId "<<detid.rawId()<<std::endl;
+	  std::map<uint32_t, std::vector<const PSimHit*> > map = tksimhitmap[i];
+	  std::map<uint32_t, std::vector<const PSimHit*> >::iterator it;
+	  if(printInfoMuonMatchDetail) {for(it=map.begin();it!=map.end();++it){std::cout<<"TRK SimHit map ["<<i<<"] ==> element < detid = "<<it->first<<" has "<<it->second.size()<<" simhits"<<std::endl;}}
+          it = map.find(chamberId.rawId());
+          if (it != map.end()) { // detid found in the map           
+	    // perform now detailed matching
+    */
+    // 3) Perform Matching based on global position of SimHits and RecHits
+    // Loop first over SimHits => reduce running time (simhits only saved for signal event, not for all PU events)
+    // /*
     int NmatchedToSegment = 0;
 
     for(unsigned int j=0; j<simhitme0mu[matchedGENMu].size(); ++j) {
@@ -1392,6 +1509,8 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	}
       }
     }
+    // */
+
     if(printInfoME0Match) std::cout<<"=== Number of Matched Hits :: "<<NmatchedToSegment<<std::endl;
     if(NmatchedToSegment > (nMatchedHitsME0Seg-1)) { // NmatchedToSegment >= nMatchedHits ==> consider the segment matched to genparticle
       std::vector< std::pair<int,int> > tmp = me0mu[matchedGENMu];
@@ -1435,31 +1554,6 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if(tightme0mu[i].size() > 1) {
       std::sort(tightme0mu[i].begin(), tightme0mu[i].end(), [](const std::pair<int,int> &left, const std::pair<int,int> &right) { return left.second < right.second; });
     } 
-    /*
-    if(me0mu[i].size() > 1) {
-      std::sort(me0mu[i].begin(), me0mu[i].end(), [](const std::pair<int,int> &left, const std::pair<int,int> &right) { 
-	  if(left.second == right.second) {return theME0Muons.at(left.first).pt() < theME0Muons.at(right.first).pt();}
-	  else {return left.second < right.second;} 
-	  });
-    } 
-    */
-    //*/
-    /*
-    if(me0mu[i].size() > 1) {
-      std::sort(me0mu[i].begin(), me0mu[i].end(), sortME0muons);
-    } 
-    if(looseme0mu[i].size() > 1) {
-      std::sort(looseme0mu[i].begin(), looseme0mu[i].end(), sortME0muons);
-    } 
-    if(tightme0mu[i].size() > 1) {
-      std::sort(tightme0mu[i].begin(), tightme0mu[i].end(), sortME0muons);
-    } 
-    */
-    /*
-    if(me0mu[i].size() > 1) {
-      std::sort(me0mu[i].begin(), me0mu[i].end(), mySortingStruct);
-    }    
-    */
   }
   // --------------------------------------------------------------------
 
@@ -2119,6 +2213,10 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     NoMatch_AllME0Mu_ME0Reco_dX->Fill(fabs(trackPos.x()-segPos.x())); 
     NoMatch_AllME0Mu_ME0Reco_dY->Fill(fabs(trackPos.y()-segPos.y())); 
     NoMatch_AllME0Mu_ME0Reco_dPhi->Fill(deltaPhi(trackDir.phi(),segDir.phi()));
+    double maxdphi = maxDPhi(it->me0segment().specificRecHits());
+    double maxdeta = maxDEta(it->me0segment().specificRecHits());
+    NoMatch_AllME0Mu_ME0Segm_maxdPhi->Fill(maxdphi);
+    NoMatch_AllME0Mu_ME0Segm_maxdEta->Fill(maxdeta);
 
     // these plots only make sense if there is signal muon in the ME0 coverage
     // only fill them for OldMatch
@@ -2154,6 +2252,11 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       NoMatch_TightME0Mu_ETAResolution->Fill(etares);               if(it->pt() > 5) {NoMatch_TightME0Mu_ETAResolution_5GeV->Fill(etares);}
       NoMatch_TightME0Mu_ETAvsETARes->Fill(fabs(it->eta()),etares); if(it->pt() > 5) {NoMatch_TightME0Mu_ETAvsETARes_5GeV->Fill(fabs(it->eta()),etares);}
       NoMatch_TightME0Mu_PTvsETARes->Fill(it->pt(),etares);
+      NoMatch_TightME0Mu_ME0Reco_dX->Fill(fabs(trackPos.x()-segPos.x())); 
+      NoMatch_TightME0Mu_ME0Reco_dY->Fill(fabs(trackPos.y()-segPos.y())); 
+      NoMatch_TightME0Mu_ME0Reco_dPhi->Fill(deltaPhi(trackDir.phi(),segDir.phi()));
+      NoMatch_TightME0Mu_ME0Segm_maxdPhi->Fill(maxdphi);
+      NoMatch_TightME0Mu_ME0Segm_maxdEta->Fill(maxdeta);
     }
   }
   NoMatch_AllME0Mu_NumbME0Muons->Fill(me0muons->size());
@@ -2205,6 +2308,15 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       double qRecoPTReco = theME0Muons.at(me0mu[i][j].first).charge()/theME0Muons.at(me0mu[i][j].first).pt();
       double qOverPT = (qSimPTSim-qRecoPTReco)/qSimPTSim;
       NewMatch_AllME0Mu_PTResolution->Fill(qOverPT);
+      GlobalPoint trackPos = theME0Muons.at(me0mu[i][j].first).globalTrackPosAtSurface();
+      GlobalVector trackDir = theME0Muons.at(me0mu[i][j].first).globalTrackMomAtSurface();
+      NewMatch_AllME0Mu_ME0Reco_dX->Fill(fabs(trackPos.x()-segPos.x()));
+      NewMatch_AllME0Mu_ME0Reco_dY->Fill(fabs(trackPos.y()-segPos.y()));
+      NewMatch_AllME0Mu_ME0Reco_dPhi->Fill(deltaPhi(trackDir.phi(),segDir.phi()));
+      double maxdphi = maxDPhi(theME0Muons.at(me0mu[i][j].first).me0segment().specificRecHits());
+      double maxdeta = maxDEta(theME0Muons.at(me0mu[i][j].first).me0segment().specificRecHits());
+      NewMatch_AllME0Mu_ME0Segm_maxdPhi->Fill(maxdphi);
+      NewMatch_AllME0Mu_ME0Segm_maxdEta->Fill(maxdeta);
     }
   }
   // Outside of the Muon Loop, because it is a property of the Muon Pair
@@ -2299,6 +2411,10 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       NewMatch_LooseME0Mu_ME0Reco_dX->Fill(fabs(trackPos.x()-segPos.x())); 
       NewMatch_LooseME0Mu_ME0Reco_dY->Fill(fabs(trackPos.y()-segPos.y())); 
       NewMatch_LooseME0Mu_ME0Reco_dPhi->Fill(deltaPhi(trackDir.phi(),segDir.phi()));
+      double maxdphi = maxDPhi(theME0Muons.at(looseme0mu[i][j].first).me0segment().specificRecHits());
+      double maxdeta = maxDEta(theME0Muons.at(looseme0mu[i][j].first).me0segment().specificRecHits());
+      NewMatch_LooseME0Mu_ME0Segm_maxdPhi->Fill(maxdphi);
+      NewMatch_LooseME0Mu_ME0Segm_maxdEta->Fill(maxdeta);
     }
   }
   // Outside of the Muon Loop, because it is a property of the Muon Pair
@@ -2393,6 +2509,10 @@ MyME0InTimePUAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       NewMatch_TightME0Mu_ME0Reco_dX->Fill(fabs(trackPos.x()-segPos.x())); 
       NewMatch_TightME0Mu_ME0Reco_dY->Fill(fabs(trackPos.y()-segPos.y())); 
       NewMatch_TightME0Mu_ME0Reco_dPhi->Fill(deltaPhi(trackDir.phi(),segDir.phi()));
+      double maxdphi = maxDPhi(theME0Muons.at(tightme0mu[i][j].first).me0segment().specificRecHits());
+      double maxdeta = maxDEta(theME0Muons.at(tightme0mu[i][j].first).me0segment().specificRecHits());
+      NewMatch_TightME0Mu_ME0Segm_maxdPhi->Fill(maxdphi);
+      NewMatch_TightME0Mu_ME0Segm_maxdEta->Fill(maxdeta);
     }
   }
   // Outside of the Muon Loop, because it is a property of the Muon Pair
@@ -2755,6 +2875,35 @@ double MyME0InTimePUAnalyzer::maxTimeSpan(const std::vector<ME0RecHit> rechits) 
   }
   return fabs(maxvalue-minvalue);
 }
+
+double MyME0InTimePUAnalyzer::maxDPhi(const std::vector<ME0RecHit> rechits) {
+  double maxvalue = -1000;
+  for (auto rh1=rechits.begin(); rh1!=rechits.end(); ++rh1){
+    ME0DetId segME0id1 = (*rh1).me0Id();
+    double phi1 = ((me0Geom->etaPartition(segME0id1))->toGlobal((*rh1).localPosition())).phi();
+    for(auto rh2=rechits.begin(); rh2<rh1; ++rh2) {
+      ME0DetId segME0id2 = (*rh2).me0Id();
+      double phi2 = ((me0Geom->etaPartition(segME0id2))->toGlobal((*rh2).localPosition())).phi();
+      if(fabs(phi1-phi2) > maxvalue) maxvalue = fabs(phi1-phi2);
+    }
+  }
+  return maxvalue;
+}
+
+double MyME0InTimePUAnalyzer::maxDEta(const std::vector<ME0RecHit> rechits) {
+  double maxvalue = -1000;
+  for (auto rh1=rechits.begin(); rh1!=rechits.end(); ++rh1){
+    ME0DetId segME0id1 = (*rh1).me0Id();
+    double eta1 = ((me0Geom->etaPartition(segME0id1))->toGlobal((*rh1).localPosition())).eta();
+    for(auto rh2=rechits.begin(); rh2<rh1; ++rh2) {
+      ME0DetId segME0id2 = (*rh2).me0Id();
+      double eta2 = ((me0Geom->etaPartition(segME0id2))->toGlobal((*rh2).localPosition())).eta();
+      if(fabs(eta1-eta2) > maxvalue) maxvalue = fabs(eta1-eta2);
+    }
+  }
+  return maxvalue;
+}
+
 
 GlobalPoint MyME0InTimePUAnalyzer::AverageHitPos(const std::vector<ME0RecHit> rechits) {
   double ave_x = 0.0, ave_y = 0.0, ave_z = 0.0;
