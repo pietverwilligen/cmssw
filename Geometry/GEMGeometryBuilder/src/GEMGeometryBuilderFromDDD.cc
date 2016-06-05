@@ -22,6 +22,8 @@
 
 #include "CLHEP/Units/GlobalSystemOfUnits.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <iostream>
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -55,34 +57,34 @@ GEMGeometry* GEMGeometryBuilderFromDDD::build(const DDCompactView* cview, const 
 GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
 {
   std::cout << "Building the geometry service" << std::endl;
-  LogDebug("GEMGeometryBuilderFromDDD") <<"Building the geometry service";
+  edm::LogVerbatim("GEMGeometryBuilderFromDDD") <<"Building the geometry service";
   GEMGeometry* geometry = new GEMGeometry();
 
-  LogDebug("GEMGeometryBuilderFromDDD") << "About to run through the GEM structure\n" 
+  edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "About to run through the GEM structure\n" 
 					<<" First logical part "
 					<<fview.logicalPart().name().name();
   bool doSubDets = fview.firstChild();
-  LogDebug("GEMGeometryBuilderFromDDD") << "doSubDets = " << doSubDets;
+  edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "doSubDets = " << doSubDets;
 
-  LogDebug("GEMGeometryBuilderFromDDD") <<"start the loop"; 
+  edm::LogVerbatim("GEMGeometryBuilderFromDDD") <<"start the loop"; 
   int nChambers(0);
   int maxStation(1);
   while (doSubDets)
   {
     // Get the Base Muon Number
     MuonDDDNumbering mdddnum(muonConstants);
-    LogDebug("GEMGeometryBuilderFromDDD") <<"Getting the Muon base Number";
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") <<"Getting the Muon base Number";
     MuonBaseNumber mbn = mdddnum.geoHistoryToBaseNumber(fview.geoHistory());
 
-    LogDebug("GEMGeometryBuilderFromDDD") <<"Start the GEM Numbering Schema";
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") <<"Start the GEM Numbering Schema";
     GEMNumberingScheme gemnum(muonConstants);
 
     GEMDetId rollDetId(gemnum.baseNumberToUnitNumber(mbn));
-    LogDebug("GEMGeometryBuilderFromDDD") << "GEM eta partition rawId: " << rollDetId.rawId() << ", detId: " << rollDetId;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "GEM eta partition rawId: " << rollDetId.rawId() << ", detId: " << rollDetId;
 
     // chamber id for this partition. everything is the same; but partition number is 0.
     GEMDetId chamberId(rollDetId.chamberId());
-    LogDebug("GEMGeometryBuilderFromDDD") << "GEM chamber rawId: " << chamberId.rawId() << ", detId: " << chamberId;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "GEM chamber rawId: " << chamberId.rawId() << ", detId: " << chamberId;
     const int stationId(rollDetId.station());
     if (stationId > maxStation) maxStation = stationId;
     
@@ -99,9 +101,9 @@ GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
       if (DDfetch( *is, numbOfStrips)) nStrips = numbOfStrips.doubles()[0];
       if (DDfetch( *is, numbOfPads))   nPads = numbOfPads.doubles()[0];
     }
-    LogDebug("GEMGeometryBuilderFromDDD") 
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") 
       << ((nStrips == 0. ) ? ("No nStrips found!!") : ("Number of strips: " + boost::lexical_cast<std::string>(nStrips))); 
-    LogDebug("GEMGeometryBuilderFromDDD") 
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") 
       << ((nPads == 0. ) ? ("No nPads found!!") : ("Number of pads: " + boost::lexical_cast<std::string>(nPads)));
 
     std::vector<double> dpar=fview.logicalPart().solid().parameters();
@@ -138,7 +140,7 @@ GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
     pars.push_back(nStrips);
     pars.push_back(nPads);
 
-    LogDebug("GEMGeometryBuilderFromDDD") 
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") 
       << "GEM " << name << " par " << be << " " << te << " " << ap << " " << dpar[0];
     
     GEMEtaPartitionSpecs* e_p_specs = new GEMEtaPartitionSpecs(GeomDetEnumerators::GEM, name, pars);
@@ -183,14 +185,14 @@ GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
       ReferenceCountingPointer<BoundPlane> surf(bp);
       
       GEMChamber* ch = new GEMChamber(chamberId, surf); 
-      LogDebug("GEMGeometryBuilderFromDDD")  << "Creating chamber " << chamberId << " with " << vDetId.size() << " eta partitions" << std::endl;
+      edm::LogVerbatim("GEMGeometryBuilderFromDDD")  << "Creating chamber " << chamberId << " with " << vDetId.size() << " eta partitions" << std::endl;
       
       for(auto id : vDetId){
-	LogDebug("GEMGeometryBuilderFromDDD") << "Adding eta partition " << id << " to GEM chamber" << std::endl;
+	edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding eta partition " << id << " to GEM chamber" << std::endl;
 	ch->add(const_cast<GEMEtaPartition*>(geometry->etaPartition(id)));
       }
 
-      LogDebug("GEMGeometryBuilderFromDDD") << "Adding the chamber to the geometry" << std::endl;
+      edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding the chamber to the geometry" << std::endl;
       geometry->add(ch);
       vDetId.clear();
     }
@@ -209,15 +211,15 @@ GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
     GEMDetId detIdL2(detIdL1.region(),detIdL1.ring(),detIdL1.station(),2,detIdL1.chamber(),0);
     auto ch2 = geometry->chamber(detIdL2);
 
-    LogDebug("GEMGeometryBuilderFromDDD") << "First chamber for super chamber: " << detIdL1 << std::endl;
-    LogDebug("GEMGeometryBuilderFromDDD") << "Second chamber for super chamber: " << detIdL2 << std::endl;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "First chamber for super chamber: " << detIdL1 << std::endl;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Second chamber for super chamber: " << detIdL2 << std::endl;
 
-    LogDebug("GEMGeometryBuilderFromDDD") << "Creating new GEM super chamber out of chambers." << std::endl;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Creating new GEM super chamber out of chambers." << std::endl;
     GEMSuperChamber* sch = new GEMSuperChamber(detIdL1, surf); 
     sch->add(const_cast<GEMChamber*>(chambers.at(i)));
     sch->add(const_cast<GEMChamber*>(ch2));
 
-    LogDebug("GEMGeometryBuilderFromDDD") << "Adding the super chamber to the geometry." << std::endl;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding the super chamber to the geometry." << std::endl;
     geometry->add(sch);
   }
 
@@ -239,18 +241,18 @@ GEMGeometry* GEMGeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
 	  const GEMDetId detId(superChambers.at(sch)->id());
 	  if (detId.region() != re || detId.station() != st || detId.ring() != ri) continue;
 	  ring->add(superChambers.at(sch));
-	  LogDebug("GEMGeometryBuilderFromDDD") << "Adding super chamber " << detId << " to ring: " 
+	  edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding super chamber " << detId << " to ring: " 
 						<< "re " << re << " st " << st << " ri " << ri << std::endl;
  	}
-	LogDebug("GEMGeometryBuilderFromDDD") << "Adding ring " <<  ri << " to station " << "re " << re << " st " << st << std::endl;
+	edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding ring " <<  ri << " to station " << "re " << re << " st " << st << std::endl;
 	station->add(ring);
 	geometry->add(ring);
       }
-      LogDebug("GEMGeometryBuilderFromDDD") << "Adding station " << st << " to region " << re << std::endl;
+      edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding station " << st << " to region " << re << std::endl;
       region->add(station);
       geometry->add(station);
     }
-    LogDebug("GEMGeometryBuilderFromDDD") << "Adding region " << re << " to the geometry " << std::endl;
+    edm::LogVerbatim("GEMGeometryBuilderFromDDD") << "Adding region " << re << " to the geometry " << std::endl;
     geometry->add(region);
   }
   return geometry;
