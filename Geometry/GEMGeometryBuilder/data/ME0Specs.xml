@@ -2,11 +2,11 @@
 <DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
   <SpecParSection label="ME0Specs.xml">
     <SpecPar name="nStripsME0" eval="true">
-      <PartSelector path="//ME0L"/>
+      <PartSelector path="//ME0L.."/>
       <Parameter name="nStrips" value="768"/>
     </SpecPar>
     <SpecPar name="nPadsME0" eval="true">
-      <PartSelector path="//ME0L"/>
+      <PartSelector path="//ME0L.."/>
       <Parameter name="nPads" value="384"/>
     </SpecPar>
   </SpecParSection>
