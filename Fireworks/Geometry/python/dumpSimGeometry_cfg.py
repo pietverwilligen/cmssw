@@ -42,6 +42,8 @@ def simGeoLoad(score):
     elif score == "2023HGCalV4":
        process.load('Configuration.Geometry.GeometryExtended2023HGCalV4Reco_cff')
 
+    elif score == "2023HGCalMuon":
+       process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
 
     elif score == "SLHC":
         process.load('SLHCUpgradeSimulations.Geometry.Phase1_R30F12_HCal_cmsSimIdealGeometryXML_cff')
