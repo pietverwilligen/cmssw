@@ -2,6 +2,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "SimMuon/GEMDigitizer/interface/GEMDigiModelFactory.h"
 #include "SimMuon/GEMDigitizer/interface/ME0DigiModelFactory.h"
+#include "SimMuon/GEMDigitizer/interface/ME0Digi2DModelFactory.h"
 #include "SimMuon/GEMDigitizer/interface/ME0DigiPreRecoModelFactory.h"
 
 
@@ -18,13 +19,19 @@ DEFINE_EDM_PLUGIN(GEMDigiModelFactory, GEMSimpleModel, "GEMSimpleModel");
 DEFINE_FWK_MODULE(GEMCSCPadDigiProducer);
 
 #include "SimMuon/GEMDigitizer/interface/ME0DigiProducer.h"
-DEFINE_FWK_MODULE(ME0DigiProducer);
+DEFINE_FWK_MODULE(ME0DigiProducer);                                               
 
 #include "SimMuon/GEMDigitizer/interface/ME0TrivialModel.h"
 DEFINE_EDM_PLUGIN(ME0DigiModelFactory, ME0TrivialModel, "ME0TrivialModel");
 
 #include "SimMuon/GEMDigitizer/interface/ME0SimpleModel.h"
 DEFINE_EDM_PLUGIN(ME0DigiModelFactory, ME0SimpleModel, "ME0SimpleModel");
+
+#include "SimMuon/GEMDigitizer/interface/ME0Digi2DProducer.h"
+DEFINE_FWK_MODULE(ME0Digi2DProducer);                                             
+
+#include "SimMuon/GEMDigitizer/interface/ME0Digi2DGaussianModel.h"
+DEFINE_EDM_PLUGIN(ME0Digi2DModelFactory, ME0Digi2DGaussianModel, "ME0Digi2DGaussianModel"); 
 
 #include "SimMuon/GEMDigitizer/interface/ME0DigiPreRecoProducer.h"
 DEFINE_FWK_MODULE(ME0DigiPreRecoProducer);
@@ -34,3 +41,4 @@ DEFINE_EDM_PLUGIN(ME0DigiPreRecoModelFactory, ME0PreRecoNoSmearModel, "ME0PreRec
 
 #include "SimMuon/GEMDigitizer/interface/ME0PreRecoGaussianModel.h"
 DEFINE_EDM_PLUGIN(ME0DigiPreRecoModelFactory, ME0PreRecoGaussianModel, "ME0PreRecoGaussianModel");
+
