@@ -22,6 +22,8 @@
 
 #include "CLHEP/Units/GlobalSystemOfUnits.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <iostream>
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -54,31 +56,31 @@ ME0Geometry* ME0GeometryBuilderFromDDD::build(const DDCompactView* cview, const 
 
 ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, const MuonDDDConstants& muonConstants)
 {
-  LogDebug("ME0GeometryBuilderFromDDD") <<"Building the geometry service";
+  edm::LogVerbatim("ME0GeometryBuilderFromDDD") <<"Building the geometry service";
   ME0Geometry* geometry = new ME0Geometry();
 
-  LogDebug("ME0GeometryBuilderFromDDD") << "About to run through the ME0 structure\n" 
+  edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "About to run through the ME0 structure\n" 
 					<<" First logical part "
 					<<fview.logicalPart().name().name();
 
 
   bool doSubDets = fview.firstChild();
  
-  LogDebug("ME0GeometryBuilderFromDDD") << "doSubDets = " << doSubDets;
+  edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "doSubDets = " << doSubDets;
 
-   LogDebug("ME0GeometryBuilderFromDDD") <<"start the loop"; 
+   edm::LogVerbatim("ME0GeometryBuilderFromDDD") <<"start the loop"; 
   while (doSubDets)
   {
     // Get the Base Muon Number
     MuonDDDNumbering mdddnum(muonConstants);
-    LogDebug("ME0GeometryBuilderFromDDD") <<"Getting the Muon base Number";
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") <<"Getting the Muon base Number";
     MuonBaseNumber mbn = mdddnum.geoHistoryToBaseNumber(fview.geoHistory());
 
-    LogDebug("ME0GeometryBuilderFromDDD") <<"Start the ME0 Numbering Schema";
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") <<"Start the ME0 Numbering Schema";
     ME0NumberingScheme me0num(muonConstants);
 
     ME0DetId rollDetId(me0num.baseNumberToUnitNumber(mbn));
-    LogDebug("ME0GeometryBuilderFromDDD") << "ME0 eta partition rawId: " << rollDetId.rawId() << ", detId: " << rollDetId;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "ME0 eta partition rawId: " << rollDetId.rawId() << ", detId: " << rollDetId;
 
     std::vector<double> dpar=fview.logicalPart().solid().parameters();
     std::string name = fview.logicalPart().name().name();
@@ -97,6 +99,23 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
     Surface::RotationType rot(float(x.X()), float(x.Y()), float(x.Z()),
 			      float(y.X()), float(y.Y()), float(y.Z()),
 			      float(z.X()), float(z.Y()), float(z.Z())); 
+
+
+
+    DDValue numbOfStrips("nStrips");
+    DDValue numbOfPads("nPads");
+    std::vector<const DDsvalues_type* > specs(fview.specifics());
+    std::vector<const DDsvalues_type* >::iterator is = specs.begin();
+    double nStrips = 0., nPads = 0.;
+    for (;is != specs.end(); is++){
+      if (DDfetch( *is, numbOfStrips)) nStrips = numbOfStrips.doubles()[0];
+      if (DDfetch( *is, numbOfPads))   nPads = numbOfPads.doubles()[0];
+    }
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") 
+      << ((nStrips == 0. ) ? ("No nStrips found!!") : ("Number of strips: " + boost::lexical_cast<std::string>(nStrips))); 
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") 
+      << ((nPads == 0. ) ? ("No nPads found!!") : ("Number of pads: " + boost::lexical_cast<std::string>(nPads)));
+  
     
     float be = dpar[4]/cm; // half bottom edge
     float te = dpar[8]/cm; // half top edge
@@ -110,12 +129,12 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
     pars.push_back(be); 
     pars.push_back(te); 
     pars.push_back(ap);
-    float nStrips = -999.;
-    float nPads = -999.;
+    // float nStrips = -999.;
+    // float nPads = -999.;
     pars.push_back(nStrips);
     pars.push_back(nPads);
 
-    LogDebug("ME0GeometryBuilderFromDDD") 
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") 
       << "ME0 " << name << " par " << be << " " << te << " " << ap << " " << dpar[0];
     
     ME0EtaPartitionSpecs* e_p_specs = new ME0EtaPartitionSpecs(GeomDetEnumerators::ME0, name, pars);
@@ -161,14 +180,14 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
       ReferenceCountingPointer<BoundPlane> surf(bp);
       
       ME0Chamber* ch = new ME0Chamber(chamberId, surf); 
-      LogDebug("ME0GeometryBuilderFromDDD")  << "Creating chamber " << chamberId << " with " << vDetId.size() << " eta partitions" << std::endl;
+      edm::LogVerbatim("ME0GeometryBuilderFromDDD")  << "Creating chamber " << chamberId << " with " << vDetId.size() << " eta partitions" << std::endl;
       
       for(auto id : vDetId){
-	LogDebug("ME0GeometryBuilderFromDDD") << "Adding eta partition " << id << " to ME0 chamber" << std::endl;
+	edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding eta partition " << id << " to ME0 chamber" << std::endl;
 	ch->add(const_cast<ME0EtaPartition*>(geometry->etaPartition(id)));
       }
 
-      LogDebug("ME0GeometryBuilderFromDDD") << "Adding the chamber to the geometry" << std::endl;
+      edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding the chamber to the geometry" << std::endl;
       geometry->add(ch);
       vDetId.clear();
     }
@@ -187,15 +206,15 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
     ME0DetId detIdL2(detIdL1.region(),detIdL1.ring(),detIdL1.station(),2,detIdL1.chamber(),0);
     auto ch2 = geometry->chamber(detIdL2);
 
-    LogDebug("ME0GeometryBuilderFromDDD") << "First chamber for super chamber: " << detIdL1 << std::endl;
-    LogDebug("ME0GeometryBuilderFromDDD") << "Second chamber for super chamber: " << detIdL2 << std::endl;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "First chamber for super chamber: " << detIdL1 << std::endl;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Second chamber for super chamber: " << detIdL2 << std::endl;
 
-    LogDebug("ME0GeometryBuilderFromDDD") << "Creating new ME0 super chamber out of chambers." << std::endl;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Creating new ME0 super chamber out of chambers." << std::endl;
     ME0SuperChamber* sch = new ME0SuperChamber(detIdL1, surf); 
     sch->add(const_cast<ME0Chamber*>(chambers.at(i)));
     sch->add(const_cast<ME0Chamber*>(ch2));
 
-    LogDebug("ME0GeometryBuilderFromDDD") << "Adding the super chamber to the geometry." << std::endl;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding the super chamber to the geometry." << std::endl;
     geometry->add(sch);
   }
 
@@ -217,18 +236,18 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fview, con
 	  const ME0DetId detId(superChambers.at(sch)->id());
 	  if (detId.region() != re || detId.station() != st || detId.ring() != ri) continue;
 	  ring->add(superChambers.at(sch));
-	  LogDebug("ME0GeometryBuilderFromDDD") << "Adding super chamber " << detId << " to ring: " 
+	  edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding super chamber " << detId << " to ring: " 
 						<< "re " << re << " st " << st << " ri " << ri << std::endl;
  	}
-	LogDebug("ME0GeometryBuilderFromDDD") << "Adding ring " <<  ri << " to station " << "re " << re << " st " << st << std::endl;
+	edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding ring " <<  ri << " to station " << "re " << re << " st " << st << std::endl;
 	station->add(ring);
 	geometry->add(ring);
       }
-      LogDebug("ME0GeometryBuilderFromDDD") << "Adding station " << st << " to region " << re << std::endl;
+      edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding station " << st << " to region " << re << std::endl;
       region->add(station);
       geometry->add(station);
     }
-    LogDebug("ME0GeometryBuilderFromDDD") << "Adding region " << re << " to the geometry " << std::endl;
+    edm::LogVerbatim("ME0GeometryBuilderFromDDD") << "Adding region " << re << " to the geometry " << std::endl;
     geometry->add(region);
   }
   */
