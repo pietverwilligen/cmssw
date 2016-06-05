@@ -90,7 +90,8 @@ def customize_random_ME0Digi(process):
 
 ## load the digitizer 
 def load_ME0_digitizer(process):
-    process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
+    # process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
+    process.load('SimMuon.GEMDigitizer.muonME0Digis2D_cfi')
     return process
 
 
