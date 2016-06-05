@@ -2,6 +2,8 @@
 #include <DataFormats/GEMDigi/interface/GEMDigiCollection.h>
 #include <DataFormats/GEMDigi/interface/ME0DigiPreReco.h>
 #include <DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h>
+#include <DataFormats/GEMDigi/interface/ME0Digi2D.h>
+#include <DataFormats/GEMDigi/interface/ME0Digi2DCollection.h>
 
 #include <DataFormats/GEMDigi/interface/GEMCSCPadDigi.h>
 #include <DataFormats/GEMDigi/interface/GEMCSCPadDigiCollection.h>
@@ -37,6 +39,13 @@ namespace{
     std::vector<std::vector<ME0DigiPreReco> >  vvm;
     ME0DigiPreRecoCollection mcol;
     edm::Wrapper<ME0DigiPreRecoCollection> wm;
+
+
+    ME0Digi2D m2d;
+    std::vector<ME0Digi2D>  vm2d;
+    std::vector<std::vector<ME0Digi2D> >  vvm2d;
+    ME0Digi2DCollection m2dcol;
+    edm::Wrapper<ME0Digi2DCollection> wm2d;
 
   };
 }
