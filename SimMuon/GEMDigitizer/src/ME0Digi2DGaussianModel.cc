@@ -123,8 +123,14 @@ void ME0Digi2DGaussianModel::simulateSignal(const ME0EtaPartition* roll, const e
     if(hit.timeOfFlight() < (2*minBunch_-1)*bxwidth*1.0/2 || hit.timeOfFlight() > (2*maxBunch_+1)*bxwidth*1.0/2) continue;
     // is GEM efficient?
     if (flat1_->fire(1) > averageEfficiency_) continue;
+    // extract info
+    // LocalPoint entry     = simHit->entryPoint(); // which one of these we will use?
+    LocalPoint hitpnt  = hit.localPosition();
+    double tof         = gauss_->fire(hit.timeOfFlight(), sigma_t);
+    int pdgid          = hit.particleType();
     // create digis 
-    const std::vector<ME0Digi2D> cluster(simulateClustering(roll,&(hit)));
+    // const std::vector<ME0Digi2D> cluster(simulateClustering(roll,&(hit)));
+    const std::vector<ME0Digi2D> cluster(simulateClustering(roll,hitpnt,tof,pdgid,1));
     // insert digis
     for(auto& digi:cluster)
       {
@@ -134,33 +140,34 @@ void ME0Digi2DGaussianModel::simulateSignal(const ME0EtaPartition* roll, const e
   }
 }
 
-std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPartition* roll,const PSimHit* simHit)
+// std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPartition* roll,const PSimHit* simHit)
+std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPartition* roll, LocalPoint hitpnt, double tof, int pdgid, int prompt)
 {
 
-  LocalPoint entry = simHit->entryPoint();
+  // LocalPoint entry = simHit->entryPoint();
   double x=0.0, y=0.0;
   
   double sigma_u_new = sigma_u;
-  if(constPhiSmearing_) sigma_u_new = correctSigmaU(roll, entry.y());
+  if(constPhiSmearing_) sigma_u_new = correctSigmaU(roll, hitpnt.y());
   
   // Detector Resolution smearing
   if(gaussianSmearing_) {  // Gaussian Smearing
-    x=gauss_->fire(entry.x(), sigma_u_new);
-    y=gauss_->fire(entry.y(), sigma_v);
+    x=gauss_->fire(hitpnt.x(), sigma_u_new);
+    y=gauss_->fire(hitpnt.y(), sigma_v);
   }
   else { // Uniform Smearing ... use the sigmas as boundaries
-    x=entry.x()+(flat1_->fire(0., 1.)-0.5)*sigma_u_new;
-    y=entry.y()+(flat1_->fire(0., 1.)-0.5)*sigma_v;
+    x=hitpnt.x()+(flat1_->fire(0., 1.)-0.5)*sigma_u_new;
+    y=hitpnt.y()+(flat1_->fire(0., 1.)-0.5)*sigma_v;
   }
   LocalPoint smeared(x,y,0.);  
 
   // Time and PDG ID information
-  double tof = gauss_->fire(simHit->timeOfFlight(), sigma_t);
-  int pdgid = simHit->particleType();
+  // double tof = gauss_->fire(simHit->timeOfFlight(), sigma_t);
+  // int pdgid = simHit->particleType();
   
   // calculate strip x and strip y position
   // 1) x-position
-  // const StripTopology& topology = roll->specificTopology(); // const LocalPoint& entry(simHit->entryPoint());
+  // const StripTopology& topology = roll->specificTopology(); // const LocalPoint& hitpnt(simHit->entryPoint());
   const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll->topology())));
   const Topology&                 topology=roll->specs()->topology();
 
@@ -173,7 +180,8 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   // if(centralStrip > roll->nstrips()) centralStrip =  top_->channel(LocalPoint(x,0.,0.)); // necessary?
   // centralStrip = topology.channel(entry)+1;
   centralStrip = topology.channel(smeared)+1;
-  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateSignal] :: central strip = "<<centralStrip;
+  /*
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: central strip = "<<centralStrip;
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: nstrips       = "<<roll->nstrips();
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: centralstrip  = "<<roll->strip(smeared);
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: local pitch s = "<<roll->localPitch(smeared);
@@ -182,6 +190,7 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: centralpad    = "<<roll->pad(smeared);
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: local pitch p = "<<roll->localPadPitch(smeared);
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: pitch pad     = "<<roll->padPitch();
+  */
   // edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: first strip p = "<<roll->firstStripInPad(int pad);
   // edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: last  strip p = "<<roll->lastStripInPad(int pad);
 
@@ -193,7 +202,7 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   }  
 
   // make digi for central strip
-  ME0Digi2D centralDigi(centralStrip, etapart, tof, pdgid, 1);
+  ME0Digi2D centralDigi(centralStrip, etapart, tof, pdgid, prompt);
 
   // add central digi to cluster
   std::vector < ME0Digi2D > cluster_;
@@ -211,9 +220,9 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
       if(clustersize > 1) 
 	{
 	  // find out whether we need to add strip on the left or on the right of central strip
-	  LocalPoint pointSimHit  = simHit->localPosition();
-	  LocalPoint pointDigiHit = roll->centreOfStrip(centralStrip);
-	  double deltaX = pointSimHit.x() - pointDigiHit.x();
+	  // LocalPoint pointSimHit  = simHit->localPosition();
+	  LocalPoint digpnt = roll->centreOfStrip(centralStrip);
+	  double deltaX     = hitpnt.x() - digpnt.x();
 
 	  int fstrip = -1, lstrip = -1;
 	  // For CLS > 3 insert both left and right adjacent strips
@@ -254,13 +263,14 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
 
 
   // Some Debug Printout
-  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateSignal] :: simhit  in "<<roll->id()<<" at loc x = "<<std::setw(8)<<entry.x()<<" [cm]"
-					     << " loc y = "<<std::setw(8)<<entry.y()<<" [cm] time = "<<std::setw(8)<<simHit->timeOfFlight()<<" [ns] pdgid = "<<std::showpos<<std::setw(4)<<pdgid;
-  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateSignal] :: cluster in "<<roll->id()<<" at loc x = "<<std::setw(8)<<roll->centreOfStrip(centralStrip).x()<<" [cm] loc y = "<<std::setw(8)<<(etaPartsY_[etapart-1]+etaPartsY_[etapart])/2-etaPartsY_[0]<<" [cm]"
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: simhit  in "<<roll->id()<<" at loc x = "<<std::setw(8)<<hitpnt.x()<<" [cm]"
+					     << " loc y = "<<std::setw(8)<<hitpnt.y()<<" [cm] time = "<<std::setw(8)<<tof<<" [ns] pdgid = "<<std::showpos<<std::setw(4)<<pdgid;
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: cluster in "<<roll->id()<<" at loc x = "<<std::setw(8)<<roll->centreOfStrip(centralStrip).x()
+					     <<" [cm] loc y = "<<std::setw(8)<<(etaPartsY_[etapart-1]+etaPartsY_[etapart])/2-etaPartsY_[0]<<" [cm]"
 					     <<" time = "<<std::setw(8)<<tof<<" [ns]"<<" with clustersize "<<cluster_.size();
   for(unsigned int cl=0; cl<cluster_.size(); ++cl) 
     { 
-      edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateSignal] :: digi   in "<<roll->id()<<" with strip x"<<std::setw(8)<<cluster_[cl].stripx()<<" "
+      edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: digi   in "<<roll->id()<<" with strip x"<<std::setw(8)<<cluster_[cl].stripx()
 						 <<" EtaPart = "<<cluster_[cl].stripy()<<" [cm] time = "<<std::setw(8)<<tof<<" [ns]";
     }
 
@@ -269,7 +279,8 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
 }
 
 
-void ME0Digi2DGaussianModel::implementDeadTime(){}
+void ME0Digi2DGaussianModel::implementDeadTime(){} // not implemented for now ... effect is 10^-4 ... maybe not even the right place to implement it here
+
 
 void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 {
@@ -279,6 +290,7 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
   // base_bottom, base_top, height, strips, pads 
   // note that (0,0) is in the middle of the roll ==> all param are at all half length
   const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll->topology())));
+
 
   auto& parameters(roll->specs()->parameters());
   double bottomLength(parameters[0]); bottomLength = 2*bottomLength; // bottom is largest length, so furtest away from beamline
@@ -290,8 +302,10 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 
   // Divide the detector area in different strips
   // take smearing in y-coord as height for each strip
-  double heightIt = sigma_v;
-  int heightbins  = height/heightIt; // round down
+  // double heightIt = sigma_v;
+  // int heightbins  = height/heightIt; // round down
+  // double heightIt = etaPartsY_;
+  int heightbins = nEtaPart_;
 
   edm::LogVerbatim("ME0Digi2DGaussianModelNoise") << "[ME0Digi2DDigi :: sNoise]["<<roll->id().rawId()<<"] :: roll with id = "<<roll->id();
   edm::LogVerbatim("ME0Digi2DGaussianModelNoise") << "[ME0Digi2DDigi :: sNoise]["<<roll->id().rawId()<<"] :: extracting parameters from the TrapezoidalStripTopology";
@@ -301,12 +315,15 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 
 
   for(int hx=0; hx<heightbins; ++hx) {
+    double heightIt = etaPartsY_[hx+1]-etaPartsY_[hx]; // height of the pseudo eta partition
     double bottomIt = bottomLength +  hx  *2*tan(10./180*3.14)*heightIt;
-    double topIt    = bottomLength + (hx+1)*2*tan(10./180*3.14)*heightIt; 
+    double topIt    = bottomLength + (hx+1)*2*tan(10./180*3.14)*heightIt;
+    /* 
     if(hx==heightbins-1) {
-      topIt = topLength; // last bin ... make strip a bit larger to cover entire roll
+      topIt = topLength; // last bin ... make etapartition a bit larger to cover entire roll ... not necessary i think
       heightIt = height-hx*heightIt;
     }
+    */
     double areaIt   = heightIt*(bottomIt+topIt)*1.0/2;
 
     edm::LogVerbatim("ME0Digi2DGaussianModelNoise") << "[ME0Digi2DDigi :: sNoise]["<<roll->id().rawId()<<"] :: height = "<<std::setw(12)<<heightIt<<" [cm] bottom = "<<std::setw(12)<<bottomIt<<" [cm]"
@@ -358,7 +375,7 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 						       <<" => global y (global R) = "<<std::setw(12)<<yy_glob<<" [cm] || Probability = "<<std::setw(12)<<averageElecRate
 						       <<" => efficient? "<<ele_eff<<std::endl;
       
-      // loop over amount of electron hits in this strip (pseudo-roll) 
+      // loop over amount of electron hits in this pseudo-eta partition
       // for (int i = 0; i < n_elechits; ++i) {
       if(ele_eff) {
 	//calculate xx_rand at a given yy_rand
@@ -379,11 +396,20 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 	int pdgid = 0;
 	if (myrandP <= 0.5) pdgid = -11; // electron
 	else 	            pdgid = 11;  // positron
-	// ME0Digi2D digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid, 0);
-	// digi_.insert(digi);
 	edm::LogVerbatim("ME0Digi2DGaussianModelNoise") << "[ME0Digi2DDigi :: elebkg]["<<roll->id().rawId()<<"] =====> electron hit in "<<roll->id()<<" pdgid = "<<pdgid<<" bx = "<<bx
 							 <<" ==> digitized"
 							 <<" at loc x = "<<xx_rand<<" loc y = "<<yy_rand<<" time = "<<time<<" [ns]"; 
+	// ME0Digi2D digi(xx_rand, yy_rand, ex, ey, corr, time, pdgid, 0);
+	// conversion from xx_rand and yy_rand to stripx and etaPart ... implement also clustersize ...
+	LocalPoint hitpnt(xx_rand,yy_rand,0.);
+	const std::vector<ME0Digi2D> cluster(simulateClustering(roll,hitpnt,time,pdgid,0));
+	// digi_.insert(digi);
+	// insert digis
+	for(auto& digi:cluster)
+	  {
+	    // detectorHitMap_.insert(DetectorHitMap::value_type(digi,&*(hit))); // for ME0SimDigiLink ... not now
+	    digi_.insert(digi);
+	  }
       }
     } // end if electron bkg
 		      
@@ -436,6 +462,15 @@ void ME0Digi2DGaussianModel::simulateNoise(const ME0EtaPartition* roll)
 	edm::LogVerbatim("ME0Digi2DGaussianModelNoise") << "[ME0Digi2DDigi :: neubkg]["<<roll->id().rawId()<<"] ======> neutral hit in "<<roll->id()<<" pdgid = "<<pdgid<<" bx = "<<bx
 							 <<" ==> digitized"
 							 <<" at loc x = "<<xx_rand<<" loc y = "<<yy_rand<<" time = "<<time<<" [ns]"; 
+	LocalPoint hitpnt(xx_rand,yy_rand,0.);
+	const std::vector<ME0Digi2D> cluster(simulateClustering(roll,hitpnt,time,pdgid,0));
+	// digi_.insert(digi);
+	// insert digis
+	for(auto& digi:cluster)
+	  {
+	    // detectorHitMap_.insert(DetectorHitMap::value_type(digi,&*(hit))); // for ME0SimDigiLink ... not now
+	    digi_.insert(digi);
+	  }
       }
       
     } // end if neutral bkg
@@ -455,3 +490,10 @@ double ME0Digi2DGaussianModel::correctSigmaU(const ME0EtaPartition* roll, double
   return sigma_u_new;
 }
 
+
+void ME0Digi2DGaussianModel::printDigis() {
+  for(auto& d:digi_)
+    {
+      std::cout<< "[ME0Digi2DDigi :: printDigis] "<<d<<std::endl;
+    }
+}
