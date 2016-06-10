@@ -135,7 +135,7 @@ void ME0Digi2DGaussianModel::simulateSignal(const ME0EtaPartition* roll, const e
     for(auto& digi:cluster)
       {
 	// detectorHitMap_.insert(DetectorHitMap::value_type(digi,&*(hit))); // for ME0SimDigiLink ... not now
-	std::cout<<"ME02DDigi inserted: "<<digi<<std::endl;
+	std::cout<<"[ME0Digi2DGaussianModel] ME02DDigi inserted: "<<digi<<std::endl;
 	digi_.insert(digi);
       }
   }
