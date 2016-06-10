@@ -71,7 +71,7 @@ void ME0Digi2DProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
   std::map<uint32_t, edm::PSimHitContainer> hitMap;
   for(auto &hit: *hits){
     hitMap[hit.detUnitId()].push_back(hit);
-  }
+   }
   
   // simulate signal and noise for each eta partition
   const auto & etaPartitions(me0Digi2DModel_->getGeometry()->etaPartitions());
@@ -88,9 +88,10 @@ void ME0Digi2DProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
     me0Digi2DModel_->simulateSignal(roll, simHits);
     me0Digi2DModel_->simulateNoise(roll);
     me0Digi2DModel_->fillDigis(rawId, *digis);
-    me0Digi2DModel_->printDigis();
   }
-  
+
+  // print them
+  me0Digi2DModel_->printDigis(*digis);  
   // store them in the event
   e.put(digis);
 }
