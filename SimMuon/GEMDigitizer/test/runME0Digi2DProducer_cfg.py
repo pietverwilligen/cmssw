@@ -38,6 +38,20 @@ process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
 
 # GEM digitizer
 process.load('SimMuon.GEMDigitizer.muonME0Digis2D_cfi')
+# testing some different settings ... overwritting defaults
+process.simMuonME0Digis.timeResolution = cms.double(0.001)
+process.simMuonME0Digis.phiResolution = cms.double(0.05)
+process.simMuonME0Digis.etaResolution = cms.double(1.)
+process.simMuonME0Digis.digitizeOnlyMuons = cms.bool(True)
+process.simMuonME0Digis.gaussianSmearing = cms.bool(True)
+process.simMuonME0Digis.simulateElectronBkg = cms.bool(False)
+process.simMuonME0Digis.simulateNeutralBkg  = cms.bool(False)
+process.simMuonME0Digis.nEtaPart = cms.int32(8)
+process.simMuonME0Digis.tDeadTime = cms.double(1.0)
+process.simMuonME0Digis.meanCls  = cms.double(1.0)
+
+
+
 
 # customization of the process.pdigi sequence to add the GEM digitizer
 from SimMuon.GEMDigitizer.customizeME0Digi import *
@@ -59,24 +73,24 @@ process = customize_digi_addME0_me0_only(process) # only ME0 digi
 ### that can be activated independentl                         
 ###############################################################
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
-process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
-# process.MessageLogger.categories.append("ME0Digi2DProducer")
-process.MessageLogger.categories.append("ME0Digi2DModelFactory")
-process.MessageLogger.categories.append("ME0Digi2DModel")
-process.MessageLogger.categories.append("ME0Digi2DGaussianModel")
+# process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
+# process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
+process.MessageLogger.categories.append("ME0Digi2DProducer")
+# process.MessageLogger.categories.append("ME0Digi2DModelFactory")
+# process.MessageLogger.categories.append("ME0Digi2DModel")
+# process.MessageLogger.categories.append("ME0Digi2DGaussianModel")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
 process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
     FwkReport = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    GEMGeometryBuilderFromDDD  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    ME0GeometryBuilderFromDDD  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    # ME0Digi2DProducer      = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    ME0Digi2DModelFactory  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    ME0Digi2DModel         = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    ME0Digi2DGaussianModel = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # GEMGeometryBuilderFromDDD  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0GeometryBuilderFromDDD  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    ME0Digi2DProducer      = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0Digi2DModelFactory  = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0Digi2DModel         = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0Digi2DGaussianModel = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
 )
 
 
