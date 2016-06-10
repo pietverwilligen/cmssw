@@ -44,7 +44,7 @@ public:
 
   void fillDigis(int rollDetId, ME0Digi2DCollection&);
 
-  virtual void printDigis() = 0;
+  void printDigis(ME0Digi2DCollection&);
 
   virtual void setup() = 0;
 
