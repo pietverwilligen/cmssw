@@ -88,6 +88,7 @@ void ME0Digi2DProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
     me0Digi2DModel_->simulateSignal(roll, simHits);
     me0Digi2DModel_->simulateNoise(roll);
     me0Digi2DModel_->fillDigis(rawId, *digis);
+    me0Digi2DModel_->printDigis();
   }
   
   // store them in the event
