@@ -490,11 +490,3 @@ double ME0Digi2DGaussianModel::correctSigmaU(const ME0EtaPartition* roll, double
   double sigma_u_new = Rx/Rmax*sigma_u;
   return sigma_u_new;
 }
-
-
-void ME0Digi2DGaussianModel::printDigis() {
-  for(auto& d:digi_)
-    {
-      std::cout<< "[ME0Digi2DDigi :: printDigis] "<<d<<std::endl;
-    }
-}
