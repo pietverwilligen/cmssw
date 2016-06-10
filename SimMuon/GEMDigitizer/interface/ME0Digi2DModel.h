@@ -37,12 +37,14 @@ public:
 
   virtual void simulateNoise(const ME0EtaPartition*) = 0;
   
-  //  virtual std::vector<std::pair<int,int> > 
-  //   simulateClustering(const ME0EtaPartition*, const PSimHit*, const int) = 0;
+  // virtual std::vector<std::pair<int,int> > 
+  // simulateClustering(const ME0EtaPartition*, const PSimHit*, const int) = 0;
 
   virtual void setRandomEngine(CLHEP::HepRandomEngine&) = 0;
 
   void fillDigis(int rollDetId, ME0Digi2DCollection&);
+
+  virtual void printDigis() = 0;
 
   virtual void setup() = 0;
 
