@@ -30,7 +30,6 @@ public:
   // std::vector<ME0Digi2D> simulateClustering(const ME0EtaPartition*, const PSimHit*);
   std::vector<ME0Digi2D> simulateClustering(const ME0EtaPartition*, LocalPoint, double, int, int);
   double correctSigmaU(const ME0EtaPartition*, double);
-  void   printDigis();
   void   setup()
   {
   }
