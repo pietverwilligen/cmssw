@@ -161,6 +161,9 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
     y=hitpnt.y()+(flat1_->fire(0., 1.)-0.5)*sigma_v;
   }
   LocalPoint smeared(x,y,0.);  
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "---------------------------------------------------------" ;
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: hitpoint (x,y) = ("<<hitpnt.x()<<","<<hitpnt.y()<<") smearedpoint (x,y) = ("<<x<<","<<y<<")";
+
 
   // Time and PDG ID information
   // double tof = gauss_->fire(simHit->timeOfFlight(), sigma_t);
@@ -181,7 +184,8 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   // if(centralStrip > roll->nstrips()) centralStrip =  top_->channel(LocalPoint(x,0.,0.)); // necessary?
   // centralStrip = topology.channel(entry)+1;
   centralStrip = topology.channel(smeared)+1;
-  /*
+  edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: topology.channel(pnt) = "<<topology.channel(smeared)<<std::endl;
+  ///*
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: central strip = "<<centralStrip;
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: nstrips       = "<<roll->nstrips();
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: centralstrip  = "<<roll->strip(smeared);
@@ -191,7 +195,7 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: centralpad    = "<<roll->pad(smeared);
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: local pitch p = "<<roll->localPadPitch(smeared);
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: pitch pad     = "<<roll->padPitch();
-  */
+  //*/
   // edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: first strip p = "<<roll->firstStripInPad(int pad);
   // edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: test] :: last  strip p = "<<roll->lastStripInPad(int pad);
 
@@ -201,6 +205,8 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   for(int i=1; i<=nEtaPart_; ++i) {
     if(y+rollRadius > etaPartsY_[i-1] && y+rollRadius < etaPartsY_[i]) {etapart = i;}
   }  
+
+  // edm::LogVerbatim("ME0Digi2DGaussianModel") << "i = "<<etapart<<" lower border (i-1) = "<<etaPartsY_[etapart-1]<<" < "<<y+rollRadius<<" < higher border (i) = "<<etaPartsY_[etapart]; 
 
   // make digi for central strip
   ME0Digi2D centralDigi(centralStrip, etapart, tof, pdgid, prompt);
@@ -266,13 +272,15 @@ std::vector<ME0Digi2D> ME0Digi2DGaussianModel::simulateClustering(const ME0EtaPa
   // Some Debug Printout
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: simhit  in "<<roll->id()<<" at loc x = "<<std::setw(8)<<hitpnt.x()<<" [cm]"
 					     << " loc y = "<<std::setw(8)<<hitpnt.y()<<" [cm] time = "<<std::setw(8)<<tof<<" [ns] pdgid = "<<std::showpos<<std::setw(4)<<pdgid;
+  double middleCurrentEtaPart = (etaPartsY_[etapart-1]+etaPartsY_[etapart])/2;
+  double middleLayer          = (nEtaPart_%2==0)? etaPartsY_[nEtaPart_/2] : (etaPartsY_[nEtaPart_/2] + etaPartsY_[nEtaPart_/2+1])/2;
   edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: cluster in "<<roll->id()<<" at loc x = "<<std::setw(8)<<roll->centreOfStrip(centralStrip).x()
-					     <<" [cm] loc y = "<<std::setw(8)<<(etaPartsY_[etapart-1]+etaPartsY_[etapart])/2-etaPartsY_[0]<<" [cm]"
+					     <<" [cm] loc y = "<<std::setw(8)<<middleCurrentEtaPart-middleLayer<<" [cm]"
 					     <<" time = "<<std::setw(8)<<tof<<" [ns]"<<" with clustersize "<<cluster_.size();
   for(unsigned int cl=0; cl<cluster_.size(); ++cl) 
     { 
       edm::LogVerbatim("ME0Digi2DGaussianModel") << "[ME0Digi2DDigi :: simulateClustering] :: digi   in "<<roll->id()<<" with strip x"<<std::setw(8)<<cluster_[cl].stripx()
-						 <<" EtaPart = "<<cluster_[cl].stripy()<<" [cm] time = "<<std::setw(8)<<tof<<" [ns]";
+						 <<" EtaPart = "<<cluster_[cl].stripy()<<" time = "<<std::setw(8)<<tof<<" [ns]";
     }
 
   // Return Cluster
