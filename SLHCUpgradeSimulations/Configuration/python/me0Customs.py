@@ -26,11 +26,16 @@ def customise_Digi(process):
         initialSeed = cms.untracked.uint32(1234567),
         engineName = cms.untracked.string('HepJamesRandom')
     )
+    process.RandomNumberGeneratorService.simMuonME0Digis2D = cms.PSet(
+        initialSeed = cms.untracked.uint32(1234567),
+        engineName = cms.untracked.string('HepJamesRandom')
+    )
     process.mix.mixObjects.mixSH.crossingFrames.append('MuonME0Hits')
     process.mix.mixObjects.mixSH.input.append(cms.InputTag("g4SimHits","MuonME0Hits"))
     process.mix.mixObjects.mixSH.subdets.append('MuonME0Hits')
     process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
     process.muonDigi += process.simMuonME0Digis
+    process.muonDigi += process.simMuonME0Digis2D
     process=outputCustoms(process)
     return process
 
@@ -96,6 +101,7 @@ def outputCustoms(process):
         b=a+'output'
         if hasattr(process,b):
             getattr(process,b).outputCommands.append('keep *_simMuonME0Digis_*_*')
+            getattr(process,b).outputCommands.append('keep *_simMuonME0Digis2D_*_*')
             getattr(process,b).outputCommands.append('keep *_me0RecHits_*_*')
             getattr(process,b).outputCommands.append('keep *_me0Segments_*_*')
             getattr(process,b).outputCommands.append('keep *_me0SegmentProducer_*_*')
