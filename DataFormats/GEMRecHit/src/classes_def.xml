@@ -22,6 +22,18 @@
   <class name="edm::RangeMap<ME0DetId, edm::OwnVector<ME0RecHit, edm::ClonePolicy<ME0RecHit> >, edm::ClonePolicy<ME0RecHit> >" splitLevel="0"/>
   <class name="edm::Wrapper<edm::RangeMap<ME0DetId, edm::OwnVector<ME0RecHit, edm::ClonePolicy<ME0RecHit> >, edm::ClonePolicy<ME0RecHit> > >" splitLevel="0"/>
 
+  <class name="ME0RecHit2D" splitLevel="0" ClassVersion="-1">
+   <version ClassVersion="0" checksum="0"/>
+   <version ClassVersion="-1" checksum="2404980269"/>
+  </class>
+  <class name="std::vector<ME0RecHit2D>" splitLevel="0"/>
+  <class name="std::vector<ME0RecHit2D*>" splitLevel="0"/>
+  <!-- <class name="std::map<ME0DetId, std::pair<unsigned int, unsigned int> >" splitLevel="0"/> -->
+  <!-- <class name="std::map<ME0DetId, std::pair<unsigned long, unsigned long> >" splitLevel="0"/> -->
+  <class name="edm::OwnVector<ME0RecHit2D, edm::ClonePolicy<ME0RecHit2D> >" splitLevel="0"/>
+  <class name="edm::RangeMap<ME0DetId, edm::OwnVector<ME0RecHit2D, edm::ClonePolicy<ME0RecHit2D> >, edm::ClonePolicy<ME0RecHit2D> >" splitLevel="0"/>
+  <class name="edm::Wrapper<edm::RangeMap<ME0DetId, edm::OwnVector<ME0RecHit2D, edm::ClonePolicy<ME0RecHit2D> >, edm::ClonePolicy<ME0RecHit2D> > >" splitLevel="0"/>
+
   <class name="ME0Segment" splitLevel="0" ClassVersion="11">
    <version ClassVersion="11" checksum="140443132"/>
    <version ClassVersion="10" checksum="2562385753"/>
@@ -40,6 +52,10 @@
   </class>
 
   <class name="edm::OwnVector<ME0RecHit, edm::ClonePolicy<ME0RecHit> >">
+    <method name="sort" splitLevel="0"/>
+  </class>
+
+  <class name="edm::OwnVector<ME0RecHit2D, edm::ClonePolicy<ME0RecHit2D> >">
     <method name="sort" splitLevel="0"/>
   </class>
 
