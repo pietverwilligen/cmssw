@@ -27,7 +27,8 @@ process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
     # 'file:step1.root'
     # 'file:/cmshome/piet/SLC6/ME0_Studies/SLHC28_InTimePU/CMSSW_6_2_0_SLHC28_InTimePU/src/MyCMSDriverCommands/step3.root'
-    'file:/cmshome/piet/SLC6/ME0_Studies/SLHC28_InTimePU/CMSSW_6_2_0_SLHC28_InTimePU/src/MyCMSDriverCommands/singlemupt10_step2.root'
+    # 'file:/cmshome/piet/SLC6/ME0_Studies/SLHC28_InTimePU/CMSSW_6_2_0_SLHC28_InTimePU/src/MyCMSDriverCommands/singlemupt10_step2.root'
+    'file:/tmp/piet/formarcello/singlemupt10_step2.root'
     )
 )
 process.options = cms.untracked.PSet(
@@ -39,16 +40,16 @@ process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
 # GEM digitizer
 process.load('SimMuon.GEMDigitizer.muonME0Digis2D_cfi')
 # testing some different settings ... overwritting defaults
-process.simMuonME0Digis.timeResolution = cms.double(0.001)
-process.simMuonME0Digis.phiResolution = cms.double(0.05)
-process.simMuonME0Digis.etaResolution = cms.double(1.)
-process.simMuonME0Digis.digitizeOnlyMuons = cms.bool(True)
-process.simMuonME0Digis.gaussianSmearing = cms.bool(True)
-process.simMuonME0Digis.simulateElectronBkg = cms.bool(False)
-process.simMuonME0Digis.simulateNeutralBkg  = cms.bool(False)
-process.simMuonME0Digis.nEtaPart = cms.int32(8)
-process.simMuonME0Digis.tDeadTime = cms.double(1.0)
-process.simMuonME0Digis.meanCls  = cms.double(1.0)
+process.simMuonME0Digis2D.timeResolution = cms.double(0.001)
+process.simMuonME0Digis2D.phiResolution = cms.double(0.05)
+process.simMuonME0Digis2D.etaResolution = cms.double(1.)
+process.simMuonME0Digis2D.digitizeOnlyMuons = cms.bool(True)
+process.simMuonME0Digis2D.gaussianSmearing = cms.bool(True)
+process.simMuonME0Digis2D.simulateElectronBkg = cms.bool(False)
+process.simMuonME0Digis2D.simulateNeutralBkg  = cms.bool(False)
+process.simMuonME0Digis2D.nEtaPart = cms.int32(8)
+process.simMuonME0Digis2D.tDeadTime = cms.double(1.0)
+process.simMuonME0Digis2D.meanCls  = cms.double(1.0)
 
 
 
