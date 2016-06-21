@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 # Module to create simulated ME0 Pre Reco digis.
-simMuonME0Digis = cms.EDProducer("ME0Digi2DProducer",
+simMuonME0Digis2D = cms.EDProducer("ME0Digi2DProducer",
     # initialSeed = cms.untracked.uint32(1234567890),
     # engineName = cms.untracked.string('TRandom3'),
     inputCollection = cms.string('g4SimHitsMuonME0Hits'),
