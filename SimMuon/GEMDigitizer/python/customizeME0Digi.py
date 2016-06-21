@@ -85,12 +85,16 @@ def customize_random_ME0Digi(process):
         initialSeed = cms.untracked.uint32(1234567),
         engineName = cms.untracked.string('HepJamesRandom')
     )
+    process.RandomNumberGeneratorService.simMuonME0Digis2D = cms.PSet(
+        initialSeed = cms.untracked.uint32(1234567),
+        engineName = cms.untracked.string('HepJamesRandom')
+    )
     return process
 
 
 ## load the digitizer 
 def load_ME0_digitizer(process):
-    # process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
+    process.load('SimMuon.GEMDigitizer.muonME0DigisPreReco_cfi')
     process.load('SimMuon.GEMDigitizer.muonME0Digis2D_cfi')
     return process
 
@@ -104,7 +108,8 @@ def customize_digi_addME0(process):
         process.simMuonCSCDigis +
         process.simMuonDTDigis +
         process.simMuonRPCDigis +
-        process.simMuonME0Digis
+        process.simMuonME0Digis + 
+        process.simMuonME0Digis2D
     )
     process.doAllDigi = cms.Sequence(
         process.calDigi +
@@ -130,7 +135,8 @@ def customize_digi_addME0_muon_only(process):
         process.simMuonCSCDigis +
         process.simMuonDTDigis +
         process.simMuonRPCDigis +
-        process.simMuonME0Digis
+        process.simMuonME0Digis +
+        process.simMuonME0Digis2D
     )
     process.pdigi = cms.Sequence(
         cms.SequencePlaceholder("randomEngineStateProducer")*
@@ -149,7 +155,8 @@ def customize_digi_addME0_me0_only(process):
     process.pdigi = cms.Sequence(
         cms.SequencePlaceholder("randomEngineStateProducer")*
         cms.SequencePlaceholder("mix")*
-        process.simMuonME0Digis
+        process.simMuonME0Digis *
+        process.simMuonME0Digis2D
     )
     process = append_ME0Digi_event(process)
     return process
@@ -161,5 +168,5 @@ def append_ME0Digi_event(process):
     for a in alist:
         b=a+'output'
         if hasattr(process,b):
-            getattr(process,b).outputCommands.append('keep *_simMuonME0Digis_*_*')
+            getattr(process,b).outputCommands.append('keep *_simMuonME0Digis_*_*', 'keep *_simMuonME0Digis2D_*_*')
     return process
