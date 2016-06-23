@@ -15,9 +15,13 @@
 #include "DataFormats/GeometrySurface/interface/LocalError.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+#include "DataFormats/GEMDigi/interface/ME0Digi2DCollection.h"
 #include "DataFormats/GEMRecHit/interface/ME0RecHit.h"
 #include "DataFormats/Common/interface/OwnVector.h"
 
+#include "RecoLocalMuon/GEMRecHit/src/ME0Clusterizer.h"
+
+class ME0Cluster;
 class ME0DetId;
 
 namespace edm {
@@ -43,12 +47,10 @@ class ME0RecHitBaseAlgo {
   virtual edm::OwnVector<ME0RecHit> reconstruct(const ME0DetId& me0Id,
 						const ME0DigiPreRecoCollection::Range& digiRange);
 
-
-  /// standard local recHit computation
+  /// standard local recHit computation DigiPreReco
   virtual bool compute(const ME0DigiPreReco& digi,
                        LocalPoint& Point,
                        LocalError& error) const = 0;
-
 
   /// local recHit computation accounting for track direction and 
   /// absolute position
@@ -57,6 +59,8 @@ class ME0RecHitBaseAlgo {
                        const GlobalPoint& globPos, 
                        LocalPoint& Point,
                        LocalError& error) const = 0;
+
+
 
   bool recOnlyMuons;
   bool recOnlyPrompt;
