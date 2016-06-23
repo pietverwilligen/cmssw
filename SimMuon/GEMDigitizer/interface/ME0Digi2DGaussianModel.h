@@ -57,6 +57,7 @@ private:
   CLHEP::RandGaussQ*      gauss_;
   CLHEP::RandFlat*        flat1_;
   CLHEP::RandFlat*        flat2_;
+  CLHEP::RandPoissonQ*    poisson_;
   CLHEP::RandExponential* exp_;
   // params for the simple pol6 model of neutral bkg for ME0:
   std::vector<double> neuBkg, eleBkg;
