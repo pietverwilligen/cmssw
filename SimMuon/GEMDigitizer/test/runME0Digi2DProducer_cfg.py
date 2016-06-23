@@ -49,7 +49,7 @@ process.simMuonME0Digis2D.simulateElectronBkg = cms.bool(True)
 process.simMuonME0Digis2D.simulateNeutralBkg  = cms.bool(True)
 process.simMuonME0Digis2D.nEtaPart = cms.int32(8)
 process.simMuonME0Digis2D.tDeadTime = cms.double(1.0)
-process.simMuonME0Digis2D.meanCls  = cms.double(1.0)
+process.simMuonME0Digis2D.meanCls  = cms.double(1.0)           # meanCls = 0.0 ==> clustersize exactly 1
 
 
 
