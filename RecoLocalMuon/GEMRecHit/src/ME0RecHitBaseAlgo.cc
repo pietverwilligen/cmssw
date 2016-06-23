@@ -11,6 +11,7 @@
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitBaseAlgo.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+#include "DataFormats/GEMDigi/interface/ME0Digi2DCollection.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 ME0RecHitBaseAlgo::ME0RecHitBaseAlgo(const edm::ParameterSet& config) {
@@ -22,7 +23,7 @@ ME0RecHitBaseAlgo::~ME0RecHitBaseAlgo(){}
 
 // Build all hits in the range associated to the layerId, at the 1st step.
 edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0DetId& me0Id,
-const ME0DigiPreRecoCollection::Range& digiRange){
+							 const ME0DigiPreRecoCollection::Range& digiRange){
   edm::OwnVector<ME0RecHit> result;
 
   for (ME0DigiPreRecoCollection::const_iterator digi = digiRange.first;
