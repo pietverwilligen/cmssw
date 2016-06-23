@@ -91,7 +91,7 @@ void ME0Digi2DProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
   }
 
   // print them
-  me0Digi2DModel_->printDigis(*digis);  
+  // me0Digi2DModel_->printDigis(*digis);  
   // store them in the event
   e.put(digis);
 }
