@@ -34,9 +34,10 @@
 <class name="MuonDigiCollection<ME0DetId,ME0DigiPreReco>"/> 
 <class name="edm::Wrapper<MuonDigiCollection<ME0DetId,ME0DigiPreReco> >" splitLevel="0"/> 
 
-<class name="ME0Digi2D" ClassVersion="0">
+<class name="ME0Digi2D" ClassVersion="10">
  <version ClassVersion="-1" checksum="0"/>   <!-- start compilation with classversion = -1 -->
  <version ClassVersion="0" checksum="3802819897"/>
+ <version ClassVersion="10" checksum="3802819897"/>
 </class>
 <class name="std::vector<ME0Digi2D>"/>
 <class name="std::map<ME0DetId,std::vector<ME0Digi2D> >"/>
