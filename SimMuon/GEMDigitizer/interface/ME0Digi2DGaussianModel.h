@@ -46,6 +46,7 @@ private:
   bool simulateElectronBkg_;
   bool simulateNeutralBkg_;
   int nEtaPart_;
+  bool dEtaFixed_;
   double tDeadTime_;   // Electronics Deat Time ... in ns 
   double meanCls_;
   int minBunch_;
