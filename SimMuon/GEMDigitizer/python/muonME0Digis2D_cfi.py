@@ -18,6 +18,7 @@ simMuonME0Digis2D = cms.EDProducer("ME0Digi2DProducer",
     simulateElectronBkg = cms.bool(True),       # True - will simulate electron background
     simulateNeutralBkg  = cms.bool(True),       # True - will simulate neutral (n+g)  background
     nEtaPart = cms.int32(8),
+    dEtaFixed = cms.bool(True),                 # True - fixed dEta spacing of the partitions
     tDeadTime = cms.double(1.0),
     meanCls  = cms.double(0.0),                             
     minBunch = cms.int32(-5),                   # [x 25 ns], forms the readout window together with maxBunch,
