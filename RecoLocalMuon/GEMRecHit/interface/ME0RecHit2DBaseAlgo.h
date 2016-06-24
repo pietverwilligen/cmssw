@@ -53,6 +53,8 @@ class ME0RecHit2DBaseAlgo {
                        LocalPoint& Point,
                        LocalError& error) const = 0;
 
+  virtual void setupEtaPartition(const ME0EtaPartition& roll) = 0;
+
   bool recOnlyMuons;
   bool recOnlyPrompt;
 };
