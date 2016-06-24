@@ -20,7 +20,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1)
+    input = cms.untracked.int32(-1)
 )
 
 process.source = cms.Source("PoolSource",
@@ -28,7 +28,8 @@ process.source = cms.Source("PoolSource",
     # 'file:step1.root'
     # 'file:/cmshome/piet/SLC6/ME0_Studies/SLHC28_InTimePU/CMSSW_6_2_0_SLHC28_InTimePU/src/MyCMSDriverCommands/step3.root'
     # 'file:/cmshome/piet/SLC6/ME0_Studies/SLHC28_InTimePU/CMSSW_6_2_0_SLHC28_InTimePU/src/MyCMSDriverCommands/singlemupt10_step2.root'
-    'file:/tmp/piet/formarcello/singlemupt10_step2.root'
+    # 'file:/tmp/piet/formarcello/singlemupt10_step2.root'
+    'file:/tmp/piet/formarcello/singlemupt10_step3.root'
     )
 )
 process.options = cms.untracked.PSet(
@@ -99,7 +100,8 @@ process.MessageLogger.cout = cms.untracked.PSet(
 
 process.output = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string(
-        'file:out_digi_me0.test.root'
+        # 'file:out_digi_me0.root'
+        'file:out_reco_me0.root'
     ),
     outputCommands = cms.untracked.vstring(
         'keep  *_*_*_*',
