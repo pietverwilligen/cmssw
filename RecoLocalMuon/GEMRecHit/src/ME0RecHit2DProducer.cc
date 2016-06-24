@@ -70,7 +70,6 @@ void ME0RecHit2DProducer::produce(Event& event, const EventSetup& setup) {
   // Pass the EventSetup to the algo
 
   theAlgo->setES(setup);
-
   // Create the pointer to the collection which will store the rechits
 
   auto_ptr<ME0RecHit2DCollection> recHitCollection(new ME0RecHit2DCollection());
@@ -91,7 +90,7 @@ void ME0RecHit2DProducer::produce(Event& event, const EventSetup& setup) {
     const ME0Digi2DCollection::Range& range = (*me0dgIt).second;
 
     // Call the reconstruction algorithm    
-
+    theAlgo->setupEtaPartition(*roll);
     OwnVector<ME0RecHit2D> recHits =
       theAlgo->reconstruct(*roll, me0Id, range, theTimeRes);
     
