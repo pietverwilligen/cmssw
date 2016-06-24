@@ -44,6 +44,7 @@ class ME0RecHit2DStandardAlgo : public ME0RecHit2DBaseAlgo {
 
  private:
   int nEtaPart_;
+  bool dEtaFixed_;
   std::vector<double> etaPartsE_, etaPartsY_;
 };
 #endif
