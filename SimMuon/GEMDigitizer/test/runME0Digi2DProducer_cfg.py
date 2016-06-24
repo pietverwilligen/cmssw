@@ -20,7 +20,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(1)
 )
 
 process.source = cms.Source("PoolSource",
@@ -49,6 +49,7 @@ process.simMuonME0Digis2D.gaussianSmearing = cms.bool(True)
 process.simMuonME0Digis2D.simulateElectronBkg = cms.bool(True)
 process.simMuonME0Digis2D.simulateNeutralBkg  = cms.bool(True)
 process.simMuonME0Digis2D.nEtaPart = cms.int32(8)
+process.simMuonME0Digis2D.dEtaFixed = cms.bool(True)
 process.simMuonME0Digis2D.tDeadTime = cms.double(1.0)
 process.simMuonME0Digis2D.meanCls  = cms.double(1.0)           # meanCls = 0.0 ==> clustersize exactly 1
 
