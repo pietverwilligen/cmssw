@@ -39,6 +39,12 @@ class ME0RecHit2DStandardAlgo : public ME0RecHit2DBaseAlgo {
                        const GlobalPoint& globPos, 
                        LocalPoint& point,
                        LocalError& error) const;
+
+  virtual void setupEtaPartition(const ME0EtaPartition& roll); 
+
+ private:
+  int nEtaPart_;
+  std::vector<double> etaPartsE_, etaPartsY_;
 };
 #endif
 
