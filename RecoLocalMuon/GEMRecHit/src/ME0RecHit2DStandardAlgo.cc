@@ -21,7 +21,8 @@
 
 ME0RecHit2DStandardAlgo::ME0RecHit2DStandardAlgo(const edm::ParameterSet& config) :
   ME0RecHit2DBaseAlgo(config),
-  nEtaPart_(config.getParameter<int>("nEtaPart"))   
+  nEtaPart_(config.getParameter<int>("nEtaPart")),   
+  dEtaFixed_(config.getParameter<bool>("dEtaFixed"))   
 {
 }
 
@@ -47,30 +48,50 @@ void ME0RecHit2DStandardAlgo::setupEtaPartition(const ME0EtaPartition& roll)
   // base_bottom, base_top, height, strips, pads         
   // note that (0,0) is in the middle of the roll ==> all param are at all half length
 
-  const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll.topology())));
-  auto& parameters(roll.specs()->parameters());
-  double bottomLength(parameters[0]); bottomLength = 2*bottomLength; // bottom is largest length, so furtest away from beamline
-  double topLength(parameters[1]);    topLength    = 2*topLength;    // top is shortest length, so closest to beamline         
-  double height(parameters[2]);       height       = 2*height;
-  double rollRadius = top_->radius();
+  // --- FOR FIXED DISTANCE ---
+  if(!dEtaFixed_) {
+    const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll.topology())));
+    auto& parameters(roll.specs()->parameters());
+    double bottomLength(parameters[0]); bottomLength = 2*bottomLength; // bottom is largest length, so furtest away from beamline
+    double topLength(parameters[1]);    topLength    = 2*topLength;    // top is shortest length, so closest to beamline         
+    double height(parameters[2]);       height       = 2*height;
+    double rollRadius = top_->radius();
+    double me0top = rollRadius + height/2;      //             /|                                                                
+    double me0bot = rollRadius - height/2;      //            / |
+                                                //           /  |
+                                                //        C /   |
+    // conversion from spherical coords to eta,phi         /   B|
+    // eta = - ln ( tan (theta/2) )                       /     |
+    // tan theta/2 = sin theta / (1 + cos theta)         /__A___|                                                                                                                                                                                                                
+    // sin theta = A/C                                           
+    // cos theta = B/C                                           
+    // ==> eta = - ln ( A / (sqrt(A^2 + B^2) + B)               
+    // For B take middle of layer 3 anad 4 :: 540 cm            
+    // ==> eta becomes function of height A only                
+    
+    for(int i=0; i<=nEtaPart_; ++i) {
+      double A = me0bot+i*1.0/nEtaPart_*(me0top-me0bot);
+      double B = 540.;
+      etaPartsE_.push_back(-log(A/(sqrt(A*A+B*B)+B))); // save here eta value
+      etaPartsY_.push_back(A);                         // save here the height
+    }
+  }
 
-  double me0top = rollRadius + height/2;      //             /|                                                                
-  double me0bot = rollRadius - height/2;      //            / |
-                                              //        C /   |
-  // conversion from spherical coords to eta,phi         /   B|
-  // eta = - ln ( tan (theta/2) )                       /     |
-  // tan theta/2 = sin theta / (1 + cos theta)         /__A___|                                                                                                                                                                                                                
-  // sin theta = A/C                                           
-  // cos theta = B/C                                           
-  // ==> eta = - ln ( A / (sqrt(A^2 + B^2) + B)               
-  // For B take middle of layer 3 anad 4 :: 540 cm            
-  // ==> eta becomes function of height A only                
-
-  for(int i=0; i<=nEtaPart_; ++i) {
-    double A = me0bot+i*1.0/nEtaPart_*(me0top-me0bot);
-    double B = 540.;
-    etaPartsE_.push_back(-log(A/(sqrt(A*A+B*B)+B))); // save here eta value
-    etaPartsY_.push_back(A);                         // save here the height
+  // --- FOR FIXED ETA ---
+  if(dEtaFixed_) {
+    // height = B*(tan(theta_min) - tan(theta_max))
+    // theta_min = 2*arctan(exp(-eta_min))         
+    // theta_max = 2*arctan(exp(-eta_max))         
+    double eta_min = 2.0;
+    double eta_max = 2.8;
+    double B = 540; // cm ... taken the middle of layer 3 & 4
+    for(int i=0; i<=nEtaPart_; ++i) {
+      double eta = eta_max - (eta_max-eta_min)/nEtaPart_*i;
+      double theta = 2*atan(exp(-eta));
+      double A = B*tan(theta);
+      etaPartsE_.push_back(eta);
+      etaPartsY_.push_back(A);
+    }
   }
 
   edm::LogVerbatim("ME0RecHit2DStandardAlgo") << "[ME0RecHit2D] :: vector with y-coordinates bottom/top Eta Partitions: ";
