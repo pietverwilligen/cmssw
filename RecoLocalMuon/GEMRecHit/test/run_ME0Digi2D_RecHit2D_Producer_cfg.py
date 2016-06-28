@@ -50,7 +50,22 @@ from SimMuon.GEMDigitizer.customizeME0Digi import *
 process = customize_digi_addME0_me0_only(process) # only ME0 digi                                             
 
 process.load('RecoLocalMuon.GEMRecHit.me0RecHits2D_cfi')
-# process.load('RecoLocalMuon.GEMRecHit.me0Segments_cfi')
+process.load('RecoLocalMuon.GEMRecHit.me0RecHits2Dto1D_cfi')
+process.load('RecoLocalMuon.GEMRecHit.me0Segments_cfi')
+process.me0Segments.me0RecHitLabel = cms.InputTag("me0RecHits2Dto1D")
+# process.me0Segments.algo_name = cms.string("ME0SegAlgoMM")
+# process.me0Segments.algo_pset.ME0Debug = cms.untracked.bool(True)
+# process.me0Segments.algo_pset.minHitsPerSegment = cms.uint32(3)
+# process.me0Segments.algo_pset.preClustering = cms.bool(True)
+# process.me0Segments.algo_pset.dXclusBoxMax = cms.double(1.)
+# process.me0Segments.algo_pset.dYclusBoxMax = cms.double(5.)
+# process.me0Segments.algo_pset.preClusteringUseChaining = cms.bool(True)
+# process.me0Segments.algo_pset.dPhiChainBoxMax = cms.double(.02)
+# process.me0Segments.algo_pset.dEtaChainBoxMax = cms.double(.05)
+# process.me0Segments.algo_pset.dTimeChainBoxMax = cms.double(1.50) # 1ns, +/- time to fly through 30cm thick ME0
+# process.me0Segments.algo_pset.maxRecHitsInCluster = cms.int32(6)
+
+
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
@@ -69,8 +84,7 @@ process.output = cms.OutputModule("PoolOutputModule",
 
 
 process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
-process.reco_step    = cms.Path(process.pdigi*process.me0RecHits2D)
-# process.reco_step    = cms.Path(process.me0RecHits2D*process.me0Segments)
+process.reco_step    = cms.Path(process.pdigi*process.me0RecHits2D*process.me0RecHits2Dto1D*process.me0Segments)
 process.endjob_step  = cms.Path(process.endOfProcess)
 process.out_step     = cms.EndPath(process.output)
 
@@ -79,3 +93,9 @@ process.schedule = cms.Schedule(
     process.endjob_step,
     process.out_step
 )
+
+
+# Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.combinedCustoms
+# from SLHCUpgradeSimulations.Configuration.combinedCustoms import customise_me0
+# call to customisation function customise_me0 imported from SLHCUpgradeSimulations.Configuration.combinedCustoms
+# process = customise_me0(process)
