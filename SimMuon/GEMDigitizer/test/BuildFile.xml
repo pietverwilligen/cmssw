@@ -27,7 +27,7 @@
 <library   file="GEMDigiSimLinkReader.cc" name="GEMDigiSimLinkReader">
   <flags   EDM_PLUGIN="1"/>
 </library>
-<library   file="MEDigiPreRecoReader.cc" name="ME0DigiPreRecoReader">
+<library   file="ME0DigiPreRecoReader.cc" name="ME0DigiPreRecoReader">
   <flags   EDM_PLUGIN="1"/>
 </library>
 <library   file="ME0DigiReader.cc" name="ME0DigiReader">
