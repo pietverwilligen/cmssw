@@ -38,16 +38,17 @@ public:
   
 private:
 
-  string label;
+  edm::EDGetTokenT<edm::PSimHitContainer> simhitToken_;
+  edm::EDGetTokenT<ME0DigiPreRecoCollection> me0DigiToken_;
+
 };
 
 
 
-ME0DigiPreRecoReader::ME0DigiPreRecoReader(const edm::ParameterSet& pset)
+ME0DigiPreRecoReader::ME0DigiPreRecoReader(const edm::ParameterSet& pset):
+  simhitToken_(consumes<edm::PSimHitContainer>(pset.getParameter<edm::InputTag>("simhitToken"))),
+  me0DigiToken_(consumes<ME0DigiPreRecoCollection>(pset.getParameter<edm::InputTag>("me0DigiToken")))
 {
-  label = pset.getUntrackedParameter<string>("label", "simMuonME0Digis");
-  // label = pset.getUntrackedParameter<string>("label", "simMuonME0Digis2D");
-  // label = pset.getUntrackedParameter<string>("label", "simMuonME0Digis");
 }
 
 
@@ -55,18 +56,14 @@ void ME0DigiPreRecoReader::analyze(const edm::Event & event, const edm::EventSet
 {
   cout << "--- Run: " << event.id().run() << " Event: " << event.id().event() << endl;
 
-  edm::Handle<ME0DigiPreRecoCollection> digis;
-  event.getByLabel(label, digis);
-
-  edm::Handle<edm::PSimHitContainer> simHits;
-  event.getByLabel("g4SimHits","MuonME0Hits",simHits);    
-
   edm::ESHandle<ME0Geometry> pDD;
   eventSetup.get<MuonGeometryRecord>().get( pDD );
 
-   
-  // edm::Handle< edm::DetSetVector<StripDigiSimLink> > thelinkDigis;
-  // event.getByLabel(label, "ME0", thelinkDigis);
+  edm::Handle<edm::PSimHitContainer> simHits;
+  event.getByToken(simhitToken_, simHits);
+
+  edm::Handle<ME0DigiPreRecoCollection> digis;
+  event.getByToken(me0DigiToken_, digis);
 
   ME0DigiPreRecoCollection::DigiRangeIterator detUnitIt;
   for (detUnitIt = digis->begin();	detUnitIt != digis->end(); ++detUnitIt)
