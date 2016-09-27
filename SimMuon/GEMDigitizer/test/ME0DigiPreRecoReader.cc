@@ -75,7 +75,7 @@ void ME0DigiPreRecoReader::analyze(const edm::Event & event, const edm::EventSet
 
     // ME0DetId print-out
     cout<<"--------------"<<endl;
-    cout<<"id: "<<id.rawId()<<" number of strips "<<roll->nstrips()<<endl;
+    cout<<"ME0DetId: "<<id<<" RawId: "<<id.rawId()<<" number of strips "<<roll->nstrips()<<endl;
 
     // Loop over the digis of this DetUnit
     const ME0DigiPreRecoCollection::Range& range = (*detUnitIt).second;
