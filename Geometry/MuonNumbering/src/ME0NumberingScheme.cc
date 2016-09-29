@@ -73,7 +73,8 @@ int ME0NumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
 
 
 
-  int maxLevel = theLayerLevel;
+  //  int maxLevel = theLayerLevel;
+  int maxLevel = theRollLevel;
   if (num.getLevels()!=maxLevel) {
     std::cout << "MuonME0NS::BNToUN "
 	      << "BaseNumber has " << num.getLevels() << " levels,"
@@ -90,7 +91,7 @@ int ME0NumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
   else                                    
     region =-1;
   layer   = num.getBaseNo(theLayerLevel)+1;
-  roll=1;
+  roll    = num.getBaseNo(theRollLevel)+1;
   chamber = num.getBaseNo(theSectorLevel) + 1;
   // collect all info
   
