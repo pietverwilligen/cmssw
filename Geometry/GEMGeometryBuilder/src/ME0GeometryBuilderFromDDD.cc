@@ -78,7 +78,7 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     // std::cout<<"back to layer "<<fv.parent()<<std::endl;
     // std::cout<<"back to chamb "<<fv.parent()<<std::endl;
     // ok lets get started ...                             
-    LogTrace("ME0GeometryBuilderFromDDD") << "In DoChambers Loop :: ME0Chamber "<<detIdCh<<" = "<<detIdCh.rawId();
+    LogTrace("ME0GeometryBuilderFromDDD") << "In DoChambers Loop :: ME0DetId "<<detId<<" = "<<detId.rawId()<<" (which belongs to ME0Chamber "<<detIdCh<<" = "<<detIdCh.rawId()<<")";
     LogTrace("ME0GeometryBuilderFromDDD") << "Second level logical part: " << fv.logicalPart().name().name();
     DDBooleanSolid solid2 = (DDBooleanSolid)(fv.logicalPart().solid());
     std::vector<double> dpar2 = solid2.parameters();
@@ -101,7 +101,7 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
       ME0DetId detIdLa = detId.layerId();
       // back to layers
       // std::cout<<"back to layer "<<fv.parent()<<std::endl;
-      LogTrace("ME0GeometryBuilderFromDDD") << "In DoLayers Loop :: ME0Layer "<<detIdLa<<" = "<<detIdLa.rawId();
+      LogTrace("ME0GeometryBuilderFromDDD") << "In DoLayers Loop :: ME0DetId "<<detId<<" = "<<detId.rawId()<<" (which belongs to ME0Layer "<<detIdLa<<" = "<<detIdLa.rawId()<<")";
       LogTrace("ME0GeometryBuilderFromDDD") << "Third level logical part: " << fv.logicalPart().name().name();
       DDBooleanSolid solid3 = (DDBooleanSolid)(fv.logicalPart().solid());
       std::vector<double> dpar3 = solid3.parameters();
