@@ -59,7 +59,7 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
 					<<fv.logicalPart().name().name();
  
 
-  
+  /*
   bool doChambers = fv.firstChild();
   LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.firstChild() = " << doChambers;
   // ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -137,8 +137,8 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     doChambers = fv.nextSibling();
     LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.nextSibling() = " << doChambers;
   }
+  */
 
-  /*
   // loop over chambers
   bool doChambers = fv.firstChild();
   while (doChambers){
@@ -178,7 +178,6 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     geometry->add(me0Chamber);
     doChambers = fv.nextSibling();
   } 
-  */ 
   return geometry;
 }
 
