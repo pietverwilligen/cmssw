@@ -69,6 +69,9 @@ def simGeoLoad(score):
         from Configuration.AlCa.autoCond import autoCond
         process.GlobalTag.globaltag = autoCond['run2_mc']
 
+    elif score == "2023D1ME0Dev":
+       process.load('Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff')
+
     else:
       help()
 
