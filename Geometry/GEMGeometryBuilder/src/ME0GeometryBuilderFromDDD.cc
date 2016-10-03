@@ -169,12 +169,12 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
 	geometry->add(etaPart);
 	doEtaParts = fv.nextSibling();
       }
-      fv.parent();
+      // fv.parent();
       me0Chamber->add(me0Layer);
       geometry->add(me0Layer);
       doLayers = fv.nextSibling();
     }
-    fv.parent();
+    // fv.parent();
     geometry->add(me0Chamber);
     doChambers = fv.nextSibling();
   } 
@@ -224,7 +224,14 @@ ME0Layer* ME0GeometryBuilderFromDDD::buildLayer(DDFilteredView& fv, ME0DetId det
   DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
   // std::vector<double> dpar = solid.solidA().parameters();
   std::vector<double> dpar = solid.parameters();
+
+  LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
+  LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
+  for(unsigned int i=0; i<dpar.size(); ++i) {
+    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
+  }
   
+
   double dy = dpar[0]/cm;// length is along local Y
   double dz = dpar[3]/cm;// thickness is long local Z
   double dx1= dpar[4]/cm;// bottom width is along local X
@@ -260,6 +267,13 @@ ME0EtaPartition* ME0GeometryBuilderFromDDD::buildEtaPartition(DDFilteredView& fv
   
   // EtaPartition specific parameter (size) 
   std::vector<double> dpar = fv.logicalPart().solid().parameters();
+
+  LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
+  LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
+  for(unsigned int i=0; i<dpar.size(); ++i) {
+    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
+  }
+
 
   double be = dpar[4]/cm; // half bottom edge
   double te = dpar[8]/cm; // half top edge
