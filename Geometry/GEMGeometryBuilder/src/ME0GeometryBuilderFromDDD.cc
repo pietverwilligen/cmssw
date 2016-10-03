@@ -139,45 +139,108 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
   }
   */
 
-  // loop over chambers
-  bool doChambers = fv.firstChild();
-  while (doChambers){
+  // loop over all eta partitions
+  bool doEtaParts = fv.firstChild();
+  while (doEtaParts){
+
     // getting chamber id from eta partitions
-    fv.firstChild();  // ---> go to layers
-    fv.firstChild();  // ---> go to eta partitions
+    // fv.firstChild();  // ---> go to layers
+    // fv.firstChild();  // ---> go to eta partitions
     MuonDDDNumbering mdddnum(muonConstants);
     ME0NumberingScheme me0Num(muonConstants);
     int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
     ME0DetId detId = ME0DetId(rawId);
     // ME0DetId detIdCh = ME0DetId(rawid).chamberId();
     // back to chambers
-    fv.parent();
-    fv.parent();
-    ME0Chamber *me0Chamber = buildChamber(fv, detId.chamberId());
-    bool doLayers = fv.firstChild();    
-    LogTrace("ME0GeometryBuilderFromDDD") << "doLayers = " << doLayers;
-    LogTrace("ME0GeometryBuilderFromDDD") << "start the loop over the ME0Layers";
-    // loop over layers
-    while (doLayers){
-      // ME0DetId detIdLa = ME0DetId(rawid).layerId();
-      ME0Layer *me0Layer = buildLayer(fv, detId.layerId());
-      bool doEtaParts = fv.firstChild();
-      // loop over ME0EtaPartitions
-      while (doEtaParts){
-	ME0EtaPartition *etaPart = buildEtaPartition(fv, detId);
-	me0Layer->add(etaPart);
-	geometry->add(etaPart);
-	doEtaParts = fv.nextSibling();
-      }
-      // fv.parent();
-      me0Chamber->add(me0Layer);
-      geometry->add(me0Layer);
-      doLayers = fv.nextSibling();
-    }
     // fv.parent();
-    geometry->add(me0Chamber);
-    doChambers = fv.nextSibling();
-  } 
+    // fv.parent();
+
+    // initialize --- necessary for first time in loop
+    // if(!currentChamberId) { std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); currentChamberId = detId.chamberId(); std::cout<<" after = "<<currentChamberId<<" = "<<currentChamberId.rawId()<<std::endl;}
+    // if(!currentLayerId)   { std::cout<<"Initialize currentLayerId :: before = "<<currentLayerId<<" = "<<currentLayerId.rawId();       currentLayerId = detId.chamberId();   std::cout<<" after = "<<currentLayerId<<" = "<<currentLayerId.rawId()<<std::endl;} 
+
+    // build chamber ... not here but in separate loop
+    /*
+    if(detId.chamberId() != currentChamberId) {
+      // new chamber started ... build chamber
+      // ME0Chamber *me0Chamber = buildChamber(fv, detId.chamberId());
+      std::cout<<"need to build chamber here :: id = "<<detId.chamberId()<<" = "<<(detId.chamberId()).rawId()<<std::endl;
+      // geometry->add(me0Chamber);
+    }
+    */
+    // build layer ... not here but in separate loop
+    /*
+    if(detId.layerId() != currentLayerId) {
+      // new layer started ... build layer
+      // ME0Layer *me0Layer = buildLayer(fv, detId.LayerId());
+      std::cout<<"need to build layer here :: id = "<<detId.layerId()<<" = "<<(detId.layerId()).rawId()<<std::endl;
+      // me0Chamber->add(me0Layer);
+      // geometry->add(me0Layer);
+    }
+    */
+    // build eta partition
+    ME0EtaPartition *etaPart = buildEtaPartition(fv, detId);
+    // me0Layer->add(etaPart);
+    geometry->add(etaPart);
+    doEtaParts = fv.nextSibling();
+  
+  }
+
+
+  auto& partitions(geometry->etaPartitions());
+  ME0DetId currentChamberId, currentLayerId;
+  ME0Chamber *me0Chamber;
+  ME0Layer* me0Layer;
+  ME0EtaPartition * me0EtaPartition;
+  // To construct the layer we need the min bottom width and max topwidth, thickness = eta part thickness, length has to be computed, 
+  // for now these values are hardcoded any way to get this out of the parameters?
+  // max topwidth = 52.7261, min bottomwidth = 21.9859, etapart thickness = 0.4 and from R = 62.3442 to R = 149.512 ==> DR = L = 87,1678
+  // To construct the chamber we take top and bottom width from the layer, together with the length, the thickness has to be computed
+  // from Z = 527 to Z = 552 ==> DZ = T = 25 cm ==> + 2 * half-thickness of chamber = 25,8 
+
+  // necessary parameters, in order: half bottom width, half top width, half length, half thickness (layer) and half thickness (chamber)
+  double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4, T = 12.9;
+
+  for (unsigned i=1; i<=partitions.size(); ++i) {
+
+    ME0DetId detId(partitions.at(i-1)->id());
+
+    if(!currentChamberId) { 
+      // std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); 
+      currentChamberId = detId.chamberId(); 
+      // std::cout<<" after = "<<currentChamberId<<" = "<<currentChamberId.rawId()<<std::endl;
+    }
+    if(!currentLayerId)   { 
+      // std::cout<<"Initialize currentLayerId :: before = "<<currentLayerId<<" = "<<currentLayerId.rawId();
+      currentLayerId = detId.chamberId();   
+      // std::cout<<" after = "<<currentLayerId<<" = "<<currentLayerId.rawId()<<std::endl;
+    } 
+
+    // construct chamber M when first eta partition of chamber M+1 occurs OR at the very end of the loop to build the last chamber
+
+    if(detId.chamberId() != currentChamberId || i==partitions.size()) {
+      // new chamber started ... build chamber
+      me0Chamber = buildChamber(detId.chamberId(), b, B, L, T);
+      geometry->add(me0Chamber);
+    }
+    // ME0Chamber * currentME0Chamber = geometry->chamber(detId.chamberId());
+
+    if(detId.layerId() != currentLayerId || i==partitions.size()) {
+      // new layer started ... build layer
+      me0Layer = buildLayer(detId.layerId(),b, B, L, t);
+      geometry->add(me0Layer);
+      // currentME0Chamber->add(me0Layer);
+      me0Chamber->add(me0Layer);
+    }
+    /*
+    ME0Layer * currentME0Layer = geometry->layer(detId.layerId());
+    currentME0EtaPartition = geometry->etaPartition(detId);
+    currentME0Layer->add(currentME0EtaPartition);
+    */
+    me0Layer->add(me0EtaPartition);
+
+  }
+
   return geometry;
 }
 
@@ -274,7 +337,6 @@ ME0EtaPartition* ME0GeometryBuilderFromDDD::buildEtaPartition(DDFilteredView& fv
     LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
   }
 
-
   double be = dpar[4]/cm; // half bottom edge
   double te = dpar[8]/cm; // half top edge
   double ap = dpar[0]/cm; // half apothem
@@ -287,7 +349,7 @@ ME0EtaPartition* ME0GeometryBuilderFromDDD::buildEtaPartition(DDFilteredView& fv
   pars.push_back(nStrips);
   pars.push_back(nPads);
   
-  bool isOdd = false; // detId.chamber()%2;
+  bool isOdd = false; // detId.chamber()%2; // this gives the opportunity (in future) to change the face of the chamber (electronics facing IP or electronics away from IP)
   RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(be, te, ap, ti), isOdd ));
   std::string name = fv.logicalPart().name().name();
   ME0EtaPartitionSpecs* e_p_specs = new ME0EtaPartitionSpecs(GeomDetEnumerators::ME0, name, pars);
