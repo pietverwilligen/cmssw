@@ -29,8 +29,11 @@ ME0GeometryBuilderFromDDD::~ME0GeometryBuilderFromDDD()
 
 ME0Geometry* ME0GeometryBuilderFromDDD::build(const DDCompactView* cview, const MuonDDDConstants& muonConstants)
 {
-  std::string attribute = "ReadOutName";
-  std::string value     = "MuonME0Hits";
+
+  std::string attribute = "MuStructure";   // "ReadOutName";
+  std::string value     = "MuonEndCapME0"; // "MuonME0Hits";
+  // std::string attribute = "ReadOutName";
+  // std::string value     = "MuonME0Hits";
   DDValue val(attribute, value, 0.0);
 
   // Asking only for the MuonME0's
@@ -59,7 +62,7 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
 					<<fv.logicalPart().name().name();
  
 
-  /*
+  ///*
   bool doChambers = fv.firstChild();
   LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.firstChild() = " << doChambers;
   // ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -137,8 +140,9 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     doChambers = fv.nextSibling();
     LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.nextSibling() = " << doChambers;
   }
-  */
+  //*/
 
+  /*
   // loop over all eta partitions
   bool doEtaParts = fv.firstChild();
   while (doEtaParts){
@@ -159,25 +163,6 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     // if(!currentChamberId) { std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); currentChamberId = detId.chamberId(); std::cout<<" after = "<<currentChamberId<<" = "<<currentChamberId.rawId()<<std::endl;}
     // if(!currentLayerId)   { std::cout<<"Initialize currentLayerId :: before = "<<currentLayerId<<" = "<<currentLayerId.rawId();       currentLayerId = detId.chamberId();   std::cout<<" after = "<<currentLayerId<<" = "<<currentLayerId.rawId()<<std::endl;} 
 
-    // build chamber ... not here but in separate loop
-    /*
-    if(detId.chamberId() != currentChamberId) {
-      // new chamber started ... build chamber
-      // ME0Chamber *me0Chamber = buildChamber(fv, detId.chamberId());
-      std::cout<<"need to build chamber here :: id = "<<detId.chamberId()<<" = "<<(detId.chamberId()).rawId()<<std::endl;
-      // geometry->add(me0Chamber);
-    }
-    */
-    // build layer ... not here but in separate loop
-    /*
-    if(detId.layerId() != currentLayerId) {
-      // new layer started ... build layer
-      // ME0Layer *me0Layer = buildLayer(fv, detId.LayerId());
-      std::cout<<"need to build layer here :: id = "<<detId.layerId()<<" = "<<(detId.layerId()).rawId()<<std::endl;
-      // me0Chamber->add(me0Layer);
-      // geometry->add(me0Layer);
-    }
-    */
     // build eta partition
     ME0EtaPartition *etaPart = buildEtaPartition(fv, detId);
     // me0Layer->add(etaPart);
@@ -190,8 +175,8 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
   auto& partitions(geometry->etaPartitions());
   ME0DetId currentChamberId, currentLayerId;
   ME0Chamber *me0Chamber;
-  ME0Layer* me0Layer;
-  ME0EtaPartition * me0EtaPartition;
+  ME0Layer *me0Layer;
+
   // To construct the layer we need the min bottom width and max topwidth, thickness = eta part thickness, length has to be computed, 
   // for now these values are hardcoded any way to get this out of the parameters?
   // max topwidth = 52.7261, min bottomwidth = 21.9859, etapart thickness = 0.4 and from R = 62.3442 to R = 149.512 ==> DR = L = 87,1678
@@ -199,12 +184,36 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
   // from Z = 527 to Z = 552 ==> DZ = T = 25 cm ==> + 2 * half-thickness of chamber = 25,8 
 
   // necessary parameters, in order: half bottom width, half top width, half length, half thickness (layer) and half thickness (chamber)
-  double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4, T = 12.9;
+  // double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4, T = 12.9;
+
+
+  // loop over etapartitions and group them in layers
+  auto& partitions(geometry->etaPartitions());
+  std::vector<ME0DetId> vDetId;
+  for (unsigned i=1; i<=partitions.size(); ++i) {
+    ME0DetId detId(partitions.at(i-1)->id());
+    if(i==1) currentLayerId = detId.LayerId(); // initialize for first element
+    if(detId.LayerId() == currentLayerId) {vDetId.push_back(detId);}
+
+
+
+  }
+
+  // loop over layers and group them in chambers
+  auto& layers(geometry->layers());
+  for (unsigned i=1; i<=layers.size(); ++i) {
+    ME0DetId detId(layers.at(i-1)->id());
+
+
+  }
+
+
 
   for (unsigned i=1; i<=partitions.size(); ++i) {
 
     ME0DetId detId(partitions.at(i-1)->id());
 
+    // initialize only in case it is not initialized
     if(!currentChamberId) { 
       // std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); 
       currentChamberId = detId.chamberId(); 
@@ -217,29 +226,37 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
     } 
 
     // construct chamber M when first eta partition of chamber M+1 occurs OR at the very end of the loop to build the last chamber
-
     if(detId.chamberId() != currentChamberId || i==partitions.size()) {
-      // new chamber started ... build chamber
-      me0Chamber = buildChamber(detId.chamberId(), b, B, L, T);
+      // new chamber started ... build chamber ... 
+      // needs to be fixed :: for now we will take the fv of the first partition 
+      // and therefore probably also the center ... but we need to have the middle of the layer as center
+      me0Chamber = buildChamber(fv, detId.chamberId());
       geometry->add(me0Chamber);
     }
     // ME0Chamber * currentME0Chamber = geometry->chamber(detId.chamberId());
 
     if(detId.layerId() != currentLayerId || i==partitions.size()) {
       // new layer started ... build layer
-      me0Layer = buildLayer(detId.layerId(),b, B, L, t);
+      // needs to be fixed :: for now we will take the fv of the first partition 
+      // and therefore probably also the center ... but we need to have the middle of the layer as center
+      me0Layer = buildLayer(fv, detId.layerId());
       geometry->add(me0Layer);
       // currentME0Chamber->add(me0Layer);
+      // if(me0Chamber) me0Chamber->add(me0Layer);
+      const ME0Chamber* me0Chamber(geometry->chamber(detId.chamberId()));
       me0Chamber->add(me0Layer);
     }
-    /*
-    ME0Layer * currentME0Layer = geometry->layer(detId.layerId());
-    currentME0EtaPartition = geometry->etaPartition(detId);
-    currentME0Layer->add(currentME0EtaPartition);
-    */
+
+    const ME0EtaPartition* me0EtaPartition(geometry->etaPartition(detId));
+    // if(me0Layer) me0Layer->add(me0EtaPartition);
+    const ME0Layer* me0Layer(geometry->layer(detId.layerId()));
     me0Layer->add(me0EtaPartition);
 
+    // update
+    currentChamberId = detId.chamberId();
+    currentLayerId = detId.chamberId();
   }
+  */
 
   return geometry;
 }
@@ -248,35 +265,25 @@ ME0Chamber* ME0GeometryBuilderFromDDD::buildChamber(DDFilteredView& fv, ME0DetId
   LogTrace("ME0GeometryBuilderFromDDD") << "buildChamber "<<fv.logicalPart().name().name() <<" "<< detId <<std::endl;
   
   // here something goes wrong with dpar , solid.solidA and solid.solidB ... for ME0 these things are probably not defined ...  
-  DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
+  // DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
   // std::vector<double> dpar = solid.solidA().parameters();
-  std::vector<double> dpar = solid.parameters();
-  // /*  
-  double dy = dpar[0]/cm;// length is along local Y
-  double dz = dpar[3]/cm;// thickness is long local Z
-  double dx1= dpar[4]/cm;// bottom width is along local X
-  double dx2= dpar[8]/cm;// top width is along local X
-  // */
-  // double dy = 1.0, dz = 1.0, dx1 = 1.0, dx2 = 1.0;
-
-  ///*
+  // std::vector<double> dpar = solid.parameters(); 
+  // double dy = dpar[0]/cm;// length is along local Y
+  // double dz = dpar[3]/cm;// thickness is long local Z
+  // double dx1= dpar[4]/cm;// bottom width is along local X
+  // double dx2= dpar[8]/cm;// top width is along local X
+  double b = 21.9859, B = 52.7261, L = 87.1678, T = 12.9;
+  /*
   LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
   LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
   for(unsigned int i=0; i<dpar.size(); ++i) {
     LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
   }
-  //*/
-
-  // dpar = solid.solidB().parameters();
-  // dpar = solid.solidA().parameters();
-  dz += dpar[3]/cm;      // layer thickness
-  dz += 2.105;           // gap between chambers --- to be checked !!!
-  dz *= 6;               // 6 layers in chamber
-  
-  LogTrace("ME0GeometryBuilderFromDDD") << "size "<< dx1 << " " << dx2 << " " << dy << " " << dz <<std::endl;
+  */
+  LogTrace("ME0GeometryBuilderFromDDD") << "size  b: "<< b << "cm, B: " << B << "cm,  L: " << L << "cm, T: " << T <<"cm "<<std::endl;
 
   bool isOdd = false; // detId.chamber()%2;
-  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(dx1,dx2,dy,dz), isOdd ));
+  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(b,B,L,T), isOdd ));
   ME0Chamber* chamber = new ME0Chamber(detId.chamberId(), surf);
   return chamber;
 }
@@ -284,28 +291,27 @@ ME0Chamber* ME0GeometryBuilderFromDDD::buildChamber(DDFilteredView& fv, ME0DetId
 ME0Layer* ME0GeometryBuilderFromDDD::buildLayer(DDFilteredView& fv, ME0DetId detId) const {
   LogTrace("ME0GeometryBuilderFromDDD") << "buildLayer "<<fv.logicalPart().name().name() <<" "<< detId <<std::endl;
   
-  DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
+  // DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
   // std::vector<double> dpar = solid.solidA().parameters();
-  std::vector<double> dpar = solid.parameters();
-
+  // std::vector<double> dpar = solid.parameters();
+  // double dy = dpar[0]/cm;// length is along local Y
+  // double dz = dpar[3]/cm;// thickness is long local Z
+  // double dx1= dpar[4]/cm;// bottom width is along local X
+  // double dx2= dpar[8]/cm;// top width is along local X
+  // dpar = solid.solidB().parameters();
+  // dz += dpar[3]/cm;     // layer thickness --- to be checked !!! layer thickness should be same as eta part thickness
+  double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4;
+  /*
   LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
   LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
   for(unsigned int i=0; i<dpar.size(); ++i) {
     LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
   }
-  
-
-  double dy = dpar[0]/cm;// length is along local Y
-  double dz = dpar[3]/cm;// thickness is long local Z
-  double dx1= dpar[4]/cm;// bottom width is along local X
-  double dx2= dpar[8]/cm;// top width is along local X
-  // dpar = solid.solidB().parameters();
-  // dz += dpar[3]/cm;     // layer thickness --- to be checked !!! layer thickness should be same as eta part thickness
-  
-  LogTrace("ME0GeometryBuilderFromDDD") << "size "<< dx1 << " " << dx2 << " " << dy << " " << dz <<std::endl;
+  */
+  LogTrace("ME0GeometryBuilderFromDDD") << "size  b: "<< b << "cm, B: " << B << "cm,  L: " << L << "cm, t: " << t <<"cm "<<std::endl;
 
   bool isOdd = false; // detId.chamber()%2;
-  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(dx1,dx2,dy,dz), isOdd ));
+  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(b,B,L,t), isOdd ));
   ME0Layer* layer = new ME0Layer(detId.layerId(), surf);
   return layer;
 }
