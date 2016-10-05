@@ -26,7 +26,8 @@ using namespace edm;
 
 ME0GeometryESModule::ME0GeometryESModule(const edm::ParameterSet & p)
 {
-  useDDD = p.getParameter<bool>("useDDD");
+  useDDD       = p.getParameter<bool>("useDDD");
+  use10EtaPart = p.getParameter<bool>("use10EtaPart");
   setWhatProduced(this);
 }
 
@@ -37,14 +38,23 @@ ME0GeometryESModule::~ME0GeometryESModule(){}
 std::shared_ptr<ME0Geometry>
 ME0GeometryESModule::produce(const MuonGeometryRecord & record) 
 {
-  if(useDDD){
+  if(useDDD && !use10EtaPart){
     edm::ESTransientHandle<DDCompactView> cpv;
     record.getRecord<IdealGeometryRecord>().get(cpv);
     edm::ESHandle<MuonDDDConstants> mdc;
     record.getRecord<MuonNumberingRecord>().get(mdc);
     ME0GeometryBuilderFromDDD builder;
     return std::shared_ptr<ME0Geometry>(builder.build(&(*cpv), *mdc));
-  }else{
+  }
+  else if(useDDD && use10EtaPart){
+    edm::ESTransientHandle<DDCompactView> cpv;
+    record.getRecord<IdealGeometryRecord>().get(cpv);
+    edm::ESHandle<MuonDDDConstants> mdc;
+    record.getRecord<MuonNumberingRecord>().get(mdc);
+    ME0GeometryBuilderFromDDD10EtaPart builder;
+    return std::shared_ptr<ME0Geometry>(builder.build(&(*cpv), *mdc));
+  }
+  else{
     edm::ESHandle<RecoIdealGeometry> rigme0;
     record.getRecord<ME0RecoGeometryRcd>().get(rigme0);
     ME0GeometryBuilderFromCondDB builder;
