@@ -1,17 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("Demo")
-# process.load("Configuration.Geometry.GeometryExtended2023Muon_cff")
-# process.load("Configuration.Geometry.GeometryExtended2023MuonReco_cff")
-process.load("Configuration.Geometry.GeometryExtended2023D1ME0Dev_cff")
-process.load("Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff")
+# process.load("Configuration.Geometry.GeometryExtended2023D1_cff")          # ME0 Geometry with 1 etapartition
+# process.load("Configuration.Geometry.GeometryExtended2023D1Reco_cff")      # ME0 Geometry with 1 etapartition
+process.load("Configuration.Geometry.GeometryExtended2023D1ME0Dev_cff")      # ME0 Geometry with 10 etapartitions
+process.load("Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff")  # ME0 Geometry with 10 etapartitions
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-
-# process.load('FWCore.MessageLogger.MessageLogger_cfi')
-# process.MessageLogger.cout.threshold = cms.untracked.string('DEBUG')
-# process.MessageLogger.debugModules = cms.untracked.vstring('ME0GeometryBuilderFromDDD')
-# process.MessageLogger.destinations = cms.untracked.vstring("cout")
-# process.MessageLogger.cout = cms.untracked.PSet(threshold = cms.untracked.string("DEBUG"))
 
 ### TO ACTIVATE LogTrace NEED TO COMPILE IT WITH:
 ### -----------------------------------------------------------
@@ -41,20 +35,18 @@ process.MessageLogger.cout = cms.untracked.PSet(
 
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-# process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
-process.load("Geometry.GEMGeometryBuilder.me0Geometry_cfi")
-process.load("Geometry.GEMGeometryBuilder.gemGeometry_cfi")
+process.load("Geometry.GEMGeometryBuilder.me0Geometry_cfi")    # ME0 Geometry with 10 etapartitions
+
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1)
 )
 process.source = cms.Source("EmptySource")
 
-# process.MessageLogger = cms.Service("MessageLogger")
-
-process.test = cms.EDAnalyzer("ME0GeometryAnalyzer")
+# process.test = cms.EDAnalyzer("ME0GeometryAnalyzer1EtaPart")          # ME0 Geometry with 1 etapartition
+process.test = cms.EDAnalyzer("ME0GeometryAnalyzer10EtaPart")   # ME0 Geometry with 10 etapartitions
 
 process.p = cms.Path(process.test)
 
