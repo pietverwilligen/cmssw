@@ -24,7 +24,7 @@ public:
   bool operator==(const ME0Layer& ch) const;
 
   /// Add EtaPartition to the layer which takes ownership
-  void add(ME0EtaPartition* roll);
+  void add(const ME0EtaPartition* roll);
 
   /// Return the rolls in the layer
   virtual std::vector<const GeomDet*> components() const;
