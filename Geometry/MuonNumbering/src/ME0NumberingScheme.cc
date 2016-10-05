@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-//#define LOCAL_DEBUG
+// #define LOCAL_DEBUG
 
 ME0NumberingScheme::ME0NumberingScheme( const MuonDDDConstants& muonConstants ) {
   initMe(muonConstants);
