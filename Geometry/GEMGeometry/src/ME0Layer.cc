@@ -18,7 +18,7 @@ bool ME0Layer::operator==(const ME0Layer& ch) const {
   return this->id()==ch.id();
 }
 
-void ME0Layer::add(ME0EtaPartition* rl) {
+void ME0Layer::add(const ME0EtaPartition* rl) {
   etaPartitions_.push_back(rl);
 }
 
