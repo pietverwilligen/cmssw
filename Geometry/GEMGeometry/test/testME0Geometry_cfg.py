@@ -15,8 +15,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 ### before issuing the scram command above                     
 ###############################################################
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-# process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
-# process.MessageLogger.categories.append("GEMNumberingScheme")
+# process.MessageLogger.categories.append("ME0GeometryESModule")
 # process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
 # process.MessageLogger.categories.append("ME0NumberingScheme")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
@@ -25,8 +24,7 @@ process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
     FwkReport = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    # GEMGeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    # GEMNumberingScheme          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0GeometryESModule           = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     # ME0GeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     # ME0NumberingScheme          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
 )
@@ -37,15 +35,15 @@ process.MessageLogger.cout = cms.untracked.PSet(
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
-process.load("Geometry.GEMGeometryBuilder.me0Geometry_cfi")    # ME0 Geometry with 10 etapartitions
-
+# process.ME0GeometryESModule.use10EtaPart = cms.bool(False)   # ME0 Geometry with 1 etapartition
+process.ME0GeometryESModule.use10EtaPart = cms.bool(True)      # ME0 Geometry with 10 etapartitions
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1)
 )
 process.source = cms.Source("EmptySource")
 
-# process.test = cms.EDAnalyzer("ME0GeometryAnalyzer1EtaPart")          # ME0 Geometry with 1 etapartition
+# process.test = cms.EDAnalyzer("ME0GeometryAnalyzer")          # ME0 Geometry with 1 etapartition
 process.test = cms.EDAnalyzer("ME0GeometryAnalyzer10EtaPart")   # ME0 Geometry with 10 etapartitions
 
 process.p = cms.Path(process.test)
