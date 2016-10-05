@@ -4,7 +4,7 @@
 #include "DataFormats/MuonDetId/interface/GEMDetId.h"
 #include <iostream>
 
-//#define LOCAL_DEBUG
+// #define LOCAL_DEBUG
 
 GEMNumberingScheme::GEMNumberingScheme( const MuonDDDConstants& muonConstants ) {
   initMe(muonConstants);
