@@ -112,8 +112,8 @@ XMLIdealGeometryESSource = cms.ESSource("XMLIdealGeometryESSource",
         'Geometry/MuonCommonData/data/PhaseII/TDR_BaseLine/gem21.xml',
         'Geometry/MuonCommonData/data/v2/csc.xml',
         'Geometry/MuonCommonData/data/PhaseII/mfshield.xml',
-        # 'Geometry/MuonCommonData/data/PhaseII/TDR_BaseLine/me0.xml',
-        'Geometry/MuonCommonData/data/PhaseII/TDR_Dev/me0.xml',
+        # 'Geometry/MuonCommonData/data/PhaseII/TDR_BaseLine/me0.xml', # ME0 Geometry with 1 eta partition
+        'Geometry/MuonCommonData/data/PhaseII/TDR_Dev/me0.xml',        # ME0 Geometry with 10 eta partitions
         'Geometry/ForwardCommonData/data/forward.xml',
         'Geometry/ForwardCommonData/data/v2/forwardshield.xml',
         'Geometry/ForwardCommonData/data/brmrotations.xml',
@@ -141,13 +141,16 @@ XMLIdealGeometryESSource = cms.ESSource("XMLIdealGeometryESSource",
         'Geometry/HcalSimData/data/hfpmt.xml',
         'Geometry/HcalSimData/data/hffibrebundle.xml',
         'Geometry/HcalSimData/data/CaloUtil.xml',
-        'Geometry/MuonSimData/data/PhaseII/muonSens.xml',
+        # 'Geometry/MuonSimData/data/PhaseII/muonSens.xml',           # ME0 Geometry with 1 eta partition
+        'Geometry/MuonSimData/data/PhaseII/ME0EtaPart/muonSens.xml',  # ME0 Geometry with 10 eta partitions
         'Geometry/DTGeometryBuilder/data/dtSpecsFilter.xml',
         'Geometry/CSCGeometryBuilder/data/cscSpecsFilter.xml',
         'Geometry/CSCGeometryBuilder/data/cscSpecs.xml',
         'Geometry/RPCGeometryBuilder/data/PhaseII/RPCSpecs.xml',
-        'Geometry/GEMGeometryBuilder/data/GEMSpecsFilter.xml',
-        'Geometry/GEMGeometryBuilder/data/v5/GEMSpecs.xml',
+        # 'Geometry/GEMGeometryBuilder/data/GEMSpecsFilter.xml',      # ME0 Geometry with 1 eta partition
+        'Geometry/GEMGeometryBuilder/data/v7/GEMSpecsFilter.xml',     # ME0 Geometry with 10 eta partitions
+        # 'Geometry/GEMGeometryBuilder/data/v5/GEMSpecs.xml',         # ME0 Geometry with 1 eta partition
+        'Geometry/GEMGeometryBuilder/data/v7/GEMSpecs.xml',           # ME0 Geometry with 10 eta partitions
         'Geometry/ForwardCommonData/data/brmsens.xml',
         'Geometry/ForwardSimData/data/castorsens.xml',
         'Geometry/ForwardSimData/data/zdcsens.xml',
