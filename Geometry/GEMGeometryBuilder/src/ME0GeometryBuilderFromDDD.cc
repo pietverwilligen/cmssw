@@ -60,203 +60,170 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
   LogTrace("ME0GeometryBuilderFromDDD") <<"About to run through the ME0 structure\n" 
 					<<"Top level logical part: "
 					<<fv.logicalPart().name().name();
- 
 
-  ///*
-  bool doChambers = fv.firstChild();
-  LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.firstChild() = " << doChambers;
+  // ==========================================
+  // ===  Test to understand the structure  ===
+  // ========================================== 
+  #ifdef EDM_ML_DEBUG
+  bool testChambers = fv.firstChild();
+  LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.firstChild() = " << testChambers;
   // ----------------------------------------------------------------------------------------------------------------------------------------------
-  // LogTrace("ME0GeometryBuilderFromDDD") << "Second level logical part: " << fv.logicalPart().name().name(); // not good to do printout here ... not sure whether operation above returned 1 or 0
-  // LogTrace("ME0GeometryBuilderFromDDD") << "start the loop over the ME0Chambers";
-  while (doChambers) {
+  while (testChambers) {
     // to etapartitions
-    // std::cout<<"to layer "<<fv.firstChild()<<std::endl;
-    // std::cout<<"to etapt "<<fv.firstChild()<<std::endl;
+    LogTrace("ME0GeometryBuilderFromDDD")<<"to layer "<<fv.firstChild(); // commented out in case only looping over sensitive volumes
+    LogTrace("ME0GeometryBuilderFromDDD")<<"to etapt "<<fv.firstChild(); // commented out in case only looping over sensitive volumes
     MuonDDDNumbering mdddnum(muonConstants);
     ME0NumberingScheme me0Num(muonConstants);
     int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
     ME0DetId detId = ME0DetId(rawId);
     ME0DetId detIdCh = detId.chamberId();
     // back to chambers
-    // std::cout<<"back to layer "<<fv.parent()<<std::endl;
-    // std::cout<<"back to chamb "<<fv.parent()<<std::endl;
+    LogTrace("ME0GeometryBuilderFromDDD")<<"back to layer "<<fv.parent(); // commented out in case only looping over sensitive volumes
+    LogTrace("ME0GeometryBuilderFromDDD")<<"back to chamb "<<fv.parent(); // commented out in case only looping over sensitive volumes
     // ok lets get started ...                             
     LogTrace("ME0GeometryBuilderFromDDD") << "In DoChambers Loop :: ME0DetId "<<detId<<" = "<<detId.rawId()<<" (which belongs to ME0Chamber "<<detIdCh<<" = "<<detIdCh.rawId()<<")";
     LogTrace("ME0GeometryBuilderFromDDD") << "Second level logical part: " << fv.logicalPart().name().name();
     DDBooleanSolid solid2 = (DDBooleanSolid)(fv.logicalPart().solid());
-    std::vector<double> dpar2 = solid2.parameters();
+    std::vector<double> dpar2  = solid2.parameters();
     std::stringstream parameters2;
     for(unsigned int i=0; i<dpar2.size(); ++i) {
-      parameters2 << " dpar["<<i<<"]="<< dpar2[i] << "cm ";
+      parameters2 << " dpar["<<i<<"]="<< dpar2[i]/10 << "cm ";
     }
     LogTrace("ME0GeometryBuilderFromDDD") << "Second level parameters: vector with size = "<<dpar2.size()<<" and elements "<<parameters2.str();
+    // from GEM
+    // DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
+    // std::vector<double> dpar = solid.solidA().parameters();
+    /*
+    if(solid2.solidA()) {
+      std::vector<double> dpar2a = solid2.solidA().parameters();
+      std::stringstream parameters2a;
+      for(unsigned int i=0; i<dpar2a.size(); ++i) {
+	parameters2a << " dpara["<<i<<"]="<< dpar2a[i]/10 << "cm ";
+      }
+      LogTrace("ME0GeometryBuilderFromDDD") << "Second level parameters: vector with size = "<<dpar2a.size()<<" and elements "<<parameters2.str();
+    }
+    if(solid2.solidB()) {
+      std::vector<double> dpar2b = solid2.solidB().parameters();
+      std::stringstream parameters2b;
+      for(unsigned int i=0; i<dpar2b.size(); ++i) {
+	parameters2b << " dparb["<<i<<"]="<< dpar2b[i]/10 << "cm ";
+      }
+      LogTrace("ME0GeometryBuilderFromDDD") << "Second level parameters: vector with size = "<<dpar2b.size()<<" and elements "<<parameters2.str();
+    }
+    */
     bool doLayers = fv.firstChild();
     // --------------------------------------------------------------------------------------------------------------------------------------------
-    // LogTrace("ME0GeometryBuilderFromDDD") << "Third level logical part: " << fv.logicalPart().name().name(); // not good to do printout here ... not sure whether operation above returned 1 or 0
     LogTrace("ME0GeometryBuilderFromDDD") << "doLayer = fv.firstChild() = " << doLayers;
     while (doLayers) {
       // to etapartitions
-      // std::cout<<"to etapt "<<fv.firstChild()<<std::endl;
+      LogTrace("ME0GeometryBuilderFromDDD")<<"to etapt "<<fv.firstChild(); // commented out in case only looping over sensitive volumes
       MuonDDDNumbering mdddnum(muonConstants);
       ME0NumberingScheme me0Num(muonConstants);
       int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
       ME0DetId detId = ME0DetId(rawId);
       ME0DetId detIdLa = detId.layerId();
       // back to layers
-      // std::cout<<"back to layer "<<fv.parent()<<std::endl;
+      LogTrace("ME0GeometryBuilderFromDDD")<<"back to layer "<<fv.parent(); // commented out in case only looping over sensitive volumes
       LogTrace("ME0GeometryBuilderFromDDD") << "In DoLayers Loop :: ME0DetId "<<detId<<" = "<<detId.rawId()<<" (which belongs to ME0Layer "<<detIdLa<<" = "<<detIdLa.rawId()<<")";
       LogTrace("ME0GeometryBuilderFromDDD") << "Third level logical part: " << fv.logicalPart().name().name();
       DDBooleanSolid solid3 = (DDBooleanSolid)(fv.logicalPart().solid());
       std::vector<double> dpar3 = solid3.parameters();
       std::stringstream parameters3;
       for(unsigned int i=0; i<dpar3.size(); ++i) {
-	parameters3 << " dpar["<<i<<"]="<< dpar3[i] << "cm ";
+	parameters3 << " dpar["<<i<<"]="<< dpar3[i]/10 << "cm ";
       }
       LogTrace("ME0GeometryBuilderFromDDD") << "Third level parameters: vector with size = "<<dpar3.size()<<" and elements "<<parameters3.str();
       bool doEtaParts = fv.firstChild(); 
       // --------------------------------------------------------------------------------------------------------------------------------------------
-      // LogTrace("ME0GeometryBuilderFromDDD") << "Fourth level logical part: " << fv.logicalPart().name().name(); // not good to do printout here ... not sure whether operation above returned 1 or 0
       LogTrace("ME0GeometryBuilderFromDDD") << "doEtaPart = fv.firstChild() = " << doEtaParts;
       while (doEtaParts) {
-	LogTrace("ME0GeometryBuilderFromDDD") << "In DoEtaParts Loop";
+	LogTrace("ME0GeometryBuilderFromDDD") << "In DoEtaParts Loop :: ME0DetId "<<detId<<" = "<<detId.rawId();
+	LogTrace("ME0GeometryBuilderFromDDD") << "Fourth level logical part: " << fv.logicalPart().name().name();
 	DDBooleanSolid solid4 = (DDBooleanSolid)(fv.logicalPart().solid());
 	std::vector<double> dpar4 = solid4.parameters();
 	std::stringstream parameters4;
 	for(unsigned int i=0; i<dpar4.size(); ++i) {
-	  parameters4 << " dpar["<<i<<"]="<< dpar4[i] << "cm ";
+	  parameters4 << " dpar["<<i<<"]="<< dpar4[i]/10 << "cm ";
 	}
 	LogTrace("ME0GeometryBuilderFromDDD") << "Fourth level parameters: vector with size = "<<dpar4.size()<<" and elements "<<parameters4.str();
 	// --------------------------------------------------------------------------------------------------------------------------------------------
 	doEtaParts = fv.nextSibling();
 	LogTrace("ME0GeometryBuilderFromDDD") << "doEtaPart = fv.nextSibling() = " << doEtaParts;
       }
-      // fv.parent();
+      fv.parent(); // commented out in case only looping over sensitive volumes
       LogTrace("ME0GeometryBuilderFromDDD") << "went back to parent :: name = "<<fv.logicalPart().name().name()<<" will now ask for nextSibling";
       doLayers = fv.nextSibling();
       LogTrace("ME0GeometryBuilderFromDDD") << "doLayer = fv.nextSibling() = " << doLayers;
     }
-    // fv.parent();
+    fv.parent(); // commented out in case only looping over sensitive volumes
     LogTrace("ME0GeometryBuilderFromDDD") << "went back to parent :: name = "<<fv.logicalPart().name().name()<<" will now ask for nextSibling";
-    doChambers = fv.nextSibling();
-    LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.nextSibling() = " << doChambers;
+    testChambers = fv.nextSibling();
+    LogTrace("ME0GeometryBuilderFromDDD") << "doChamber = fv.nextSibling() = " << testChambers;
   }
-  //*/
+  fv.parent();
+  #endif
 
-  /*
-  // loop over all eta partitions
-  bool doEtaParts = fv.firstChild();
-  while (doEtaParts){
-
-    // getting chamber id from eta partitions
-    // fv.firstChild();  // ---> go to layers
-    // fv.firstChild();  // ---> go to eta partitions
+ 
+  // ==========================================
+  // === Here the Real ME0 Geometry Builder ===
+  // ==========================================
+  bool doChambers = fv.firstChild();
+  while (doChambers) {
+    // to etapartitions and back again to pick up DetId
+    fv.firstChild();
+    fv.firstChild();
     MuonDDDNumbering mdddnum(muonConstants);
     ME0NumberingScheme me0Num(muonConstants);
     int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
     ME0DetId detId = ME0DetId(rawId);
-    // ME0DetId detIdCh = ME0DetId(rawid).chamberId();
-    // back to chambers
-    // fv.parent();
-    // fv.parent();
+    ME0DetId detIdCh = detId.chamberId();
+    fv.parent();
+    fv.parent();
 
-    // initialize --- necessary for first time in loop
-    // if(!currentChamberId) { std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); currentChamberId = detId.chamberId(); std::cout<<" after = "<<currentChamberId<<" = "<<currentChamberId.rawId()<<std::endl;}
-    // if(!currentLayerId)   { std::cout<<"Initialize currentLayerId :: before = "<<currentLayerId<<" = "<<currentLayerId.rawId();       currentLayerId = detId.chamberId();   std::cout<<" after = "<<currentLayerId<<" = "<<currentLayerId.rawId()<<std::endl;} 
+    // build chamber 
+    ME0Chamber *me0Chamber = buildChamber(fv, detIdCh);
+    geometry->add(me0Chamber);
 
-    // build eta partition
-    ME0EtaPartition *etaPart = buildEtaPartition(fv, detId);
-    // me0Layer->add(etaPart);
-    geometry->add(etaPart);
-    doEtaParts = fv.nextSibling();
-  
-  }
+    // loop over layers of the chamber
+    bool doLayers = fv.firstChild();
+    while (doLayers) {
+      // to etapartitions and back again to pick up DetId
+      fv.firstChild();
+      MuonDDDNumbering mdddnum(muonConstants);
+      ME0NumberingScheme me0Num(muonConstants);
+      int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
+      ME0DetId detId = ME0DetId(rawId);
+      ME0DetId detIdLa = detId.layerId();
+      fv.parent();
 
-
-  auto& partitions(geometry->etaPartitions());
-  ME0DetId currentChamberId, currentLayerId;
-  ME0Chamber *me0Chamber;
-  ME0Layer *me0Layer;
-
-  // To construct the layer we need the min bottom width and max topwidth, thickness = eta part thickness, length has to be computed, 
-  // for now these values are hardcoded any way to get this out of the parameters?
-  // max topwidth = 52.7261, min bottomwidth = 21.9859, etapart thickness = 0.4 and from R = 62.3442 to R = 149.512 ==> DR = L = 87,1678
-  // To construct the chamber we take top and bottom width from the layer, together with the length, the thickness has to be computed
-  // from Z = 527 to Z = 552 ==> DZ = T = 25 cm ==> + 2 * half-thickness of chamber = 25,8 
-
-  // necessary parameters, in order: half bottom width, half top width, half length, half thickness (layer) and half thickness (chamber)
-  // double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4, T = 12.9;
-
-
-  // loop over etapartitions and group them in layers
-  auto& partitions(geometry->etaPartitions());
-  std::vector<ME0DetId> vDetId;
-  for (unsigned i=1; i<=partitions.size(); ++i) {
-    ME0DetId detId(partitions.at(i-1)->id());
-    if(i==1) currentLayerId = detId.LayerId(); // initialize for first element
-    if(detId.LayerId() == currentLayerId) {vDetId.push_back(detId);}
-
-
-
-  }
-
-  // loop over layers and group them in chambers
-  auto& layers(geometry->layers());
-  for (unsigned i=1; i<=layers.size(); ++i) {
-    ME0DetId detId(layers.at(i-1)->id());
-
-
-  }
-
-
-
-  for (unsigned i=1; i<=partitions.size(); ++i) {
-
-    ME0DetId detId(partitions.at(i-1)->id());
-
-    // initialize only in case it is not initialized
-    if(!currentChamberId) { 
-      // std::cout<<"Initialize currentChamberId :: before = "<<currentChamberId<<" = "<<currentChamberId.rawId(); 
-      currentChamberId = detId.chamberId(); 
-      // std::cout<<" after = "<<currentChamberId<<" = "<<currentChamberId.rawId()<<std::endl;
-    }
-    if(!currentLayerId)   { 
-      // std::cout<<"Initialize currentLayerId :: before = "<<currentLayerId<<" = "<<currentLayerId.rawId();
-      currentLayerId = detId.chamberId();   
-      // std::cout<<" after = "<<currentLayerId<<" = "<<currentLayerId.rawId()<<std::endl;
-    } 
-
-    // construct chamber M when first eta partition of chamber M+1 occurs OR at the very end of the loop to build the last chamber
-    if(detId.chamberId() != currentChamberId || i==partitions.size()) {
-      // new chamber started ... build chamber ... 
-      // needs to be fixed :: for now we will take the fv of the first partition 
-      // and therefore probably also the center ... but we need to have the middle of the layer as center
-      me0Chamber = buildChamber(fv, detId.chamberId());
-      geometry->add(me0Chamber);
-    }
-    // ME0Chamber * currentME0Chamber = geometry->chamber(detId.chamberId());
-
-    if(detId.layerId() != currentLayerId || i==partitions.size()) {
-      // new layer started ... build layer
-      // needs to be fixed :: for now we will take the fv of the first partition 
-      // and therefore probably also the center ... but we need to have the middle of the layer as center
-      me0Layer = buildLayer(fv, detId.layerId());
-      geometry->add(me0Layer);
-      // currentME0Chamber->add(me0Layer);
-      // if(me0Chamber) me0Chamber->add(me0Layer);
-      const ME0Chamber* me0Chamber(geometry->chamber(detId.chamberId()));
+      // build layer
+      ME0Layer *me0Layer = buildLayer(fv, detIdLa);
       me0Chamber->add(me0Layer);
+      geometry->add(me0Layer);
+
+
+      // loop over etapartitions of the layer
+      bool doEtaParts = fv.firstChild(); 
+      while (doEtaParts) {
+	// pick up DetId
+	MuonDDDNumbering mdddnum(muonConstants);
+	ME0NumberingScheme me0Num(muonConstants);
+	int rawId = me0Num.baseNumberToUnitNumber(mdddnum.geoHistoryToBaseNumber(fv.geoHistory()));
+	ME0DetId detId = ME0DetId(rawId);
+
+	// build etapartition
+	ME0EtaPartition *etaPart = buildEtaPartition(fv, detId);
+	me0Layer->add(etaPart);
+	geometry->add(etaPart);
+
+	doEtaParts = fv.nextSibling();
+      }
+      fv.parent();
+      doLayers = fv.nextSibling();
     }
-
-    const ME0EtaPartition* me0EtaPartition(geometry->etaPartition(detId));
-    // if(me0Layer) me0Layer->add(me0EtaPartition);
-    const ME0Layer* me0Layer(geometry->layer(detId.layerId()));
-    me0Layer->add(me0EtaPartition);
-
-    // update
-    currentChamberId = detId.chamberId();
-    currentLayerId = detId.chamberId();
+    fv.parent();
+    doChambers = fv.nextSibling();
   }
-  */
 
   return geometry;
 }
@@ -264,23 +231,23 @@ ME0Geometry* ME0GeometryBuilderFromDDD::buildGeometry(DDFilteredView& fv, const 
 ME0Chamber* ME0GeometryBuilderFromDDD::buildChamber(DDFilteredView& fv, ME0DetId detId) const {
   LogTrace("ME0GeometryBuilderFromDDD") << "buildChamber "<<fv.logicalPart().name().name() <<" "<< detId <<std::endl;
   
-  // here something goes wrong with dpar , solid.solidA and solid.solidB ... for ME0 these things are probably not defined ...  
-  // DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
+  DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
   // std::vector<double> dpar = solid.solidA().parameters();
-  // std::vector<double> dpar = solid.parameters(); 
-  // double dy = dpar[0]/cm;// length is along local Y
-  // double dz = dpar[3]/cm;// thickness is long local Z
-  // double dx1= dpar[4]/cm;// bottom width is along local X
-  // double dx2= dpar[8]/cm;// top width is along local X
-  double b = 21.9859, B = 52.7261, L = 87.1678, T = 12.9;
-  /*
+  std::vector<double> dpar = solid.parameters(); 
+  double L  = dpar[0]/cm;// length is along local Y
+  double T  = dpar[3]/cm;// thickness is long local Z
+  double b  = dpar[4]/cm;// bottom width is along local X
+  double B  = dpar[8]/cm;// top width is along local X
+  // hardcoded :: double b = 21.9859, B = 52.7261, L = 87.1678, T = 12.9;
+
+  #ifdef EDM_ML_DEBUG  
   LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
   LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
   for(unsigned int i=0; i<dpar.size(); ++i) {
-    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
+    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i]/10 << " cm "<<std::endl;
   }
-  */
   LogTrace("ME0GeometryBuilderFromDDD") << "size  b: "<< b << "cm, B: " << B << "cm,  L: " << L << "cm, T: " << T <<"cm "<<std::endl;
+  #endif
 
   bool isOdd = false; // detId.chamber()%2;
   RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(b,B,L,T), isOdd ));
@@ -291,24 +258,25 @@ ME0Chamber* ME0GeometryBuilderFromDDD::buildChamber(DDFilteredView& fv, ME0DetId
 ME0Layer* ME0GeometryBuilderFromDDD::buildLayer(DDFilteredView& fv, ME0DetId detId) const {
   LogTrace("ME0GeometryBuilderFromDDD") << "buildLayer "<<fv.logicalPart().name().name() <<" "<< detId <<std::endl;
   
-  // DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
+  DDBooleanSolid solid = (DDBooleanSolid)(fv.logicalPart().solid());
   // std::vector<double> dpar = solid.solidA().parameters();
-  // std::vector<double> dpar = solid.parameters();
-  // double dy = dpar[0]/cm;// length is along local Y
-  // double dz = dpar[3]/cm;// thickness is long local Z
-  // double dx1= dpar[4]/cm;// bottom width is along local X
-  // double dx2= dpar[8]/cm;// top width is along local X
+  std::vector<double> dpar = solid.parameters();
+  double L = dpar[0]/cm;// length is along local Y
+  double t = dpar[3]/cm;// thickness is long local Z
+  double b = dpar[4]/cm;// bottom width is along local X
+  double B = dpar[8]/cm;// top width is along local X
   // dpar = solid.solidB().parameters();
   // dz += dpar[3]/cm;     // layer thickness --- to be checked !!! layer thickness should be same as eta part thickness
-  double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4;
-  /*
+  // hardcoded :: double b = 21.9859, B = 52.7261, L = 87.1678, t = 0.4;
+
+  #ifdef EDM_ML_DEBUG
   LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
   LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
   for(unsigned int i=0; i<dpar.size(); ++i) {
-    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
+    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i]/10 << " cm "<<std::endl;
   }
-  */
   LogTrace("ME0GeometryBuilderFromDDD") << "size  b: "<< b << "cm, B: " << B << "cm,  L: " << L << "cm, t: " << t <<"cm "<<std::endl;
+  #endif
 
   bool isOdd = false; // detId.chamber()%2;
   RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(b,B,L,t), isOdd ));
@@ -336,31 +304,32 @@ ME0EtaPartition* ME0GeometryBuilderFromDDD::buildEtaPartition(DDFilteredView& fv
   
   // EtaPartition specific parameter (size) 
   std::vector<double> dpar = fv.logicalPart().solid().parameters();
-
+  double b = dpar[4]/cm; // half bottom edge
+  double B = dpar[8]/cm; // half top edge
+  double L = dpar[0]/cm; // half apothem
+  double t = dpar[3]/cm; // half thickness
+  
+  #ifdef EDM_ML_DEBUG
   LogTrace("ME0GeometryBuilderFromDDD") << " name of logical part = "<<fv.logicalPart().name().name()<<std::endl;
   LogTrace("ME0GeometryBuilderFromDDD") << " dpar is vector with size = "<<dpar.size()<<std::endl;
   for(unsigned int i=0; i<dpar.size(); ++i) {
-    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i] << " cm "<<std::endl;
+    LogTrace("ME0GeometryBuilderFromDDD") << " dpar ["<<i<<"] = "<< dpar[i]/10 << " cm "<<std::endl;
   }
+  LogTrace("ME0GeometryBuilderFromDDD") << "size  b: "<< b << "cm, B: " << B << "cm,  L: " << L << "cm, t: " << t <<"cm "<<std::endl;
+  #endif
 
-  double be = dpar[4]/cm; // half bottom edge
-  double te = dpar[8]/cm; // half top edge
-  double ap = dpar[0]/cm; // half apothem
-  double ti = 0.4/cm;     // half thickness
-  
   std::vector<float> pars;
-  pars.push_back(be); 
-  pars.push_back(te); 
-  pars.push_back(ap); 
+  pars.push_back(b); 
+  pars.push_back(B); 
+  pars.push_back(L); 
   pars.push_back(nStrips);
   pars.push_back(nPads);
   
   bool isOdd = false; // detId.chamber()%2; // this gives the opportunity (in future) to change the face of the chamber (electronics facing IP or electronics away from IP)
-  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(be, te, ap, ti), isOdd ));
+  RCPBoundPlane surf(boundPlane(fv, new TrapezoidalPlaneBounds(b, B, L, t), isOdd ));
   std::string name = fv.logicalPart().name().name();
   ME0EtaPartitionSpecs* e_p_specs = new ME0EtaPartitionSpecs(GeomDetEnumerators::ME0, name, pars);
   
-  LogTrace("ME0GeometryBuilderFromDDD") << "size "<< be << " " << te << " " << ap << " " << ti <<std::endl;
   ME0EtaPartition* etaPartition = new ME0EtaPartition(detId, surf, e_p_specs);
   return etaPartition;
 }
