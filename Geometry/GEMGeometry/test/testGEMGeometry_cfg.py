@@ -43,7 +43,7 @@ process.p = cms.Path(process.test)
 ###############################################################
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 # process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
-process.MessageLogger.categories.append("GEMNumberingScheme")
+# process.MessageLogger.categories.append("GEMNumberingScheme")
 # process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
 # process.MessageLogger.categories.append("ME0NumberingScheme")       
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
@@ -53,7 +53,7 @@ process.MessageLogger.cout = cms.untracked.PSet(
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
     FwkReport = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     # GEMGeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    GEMNumberingScheme            = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # GEMNumberingScheme            = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     # ME0GeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     # ME0NumberingScheme          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
 )                                                                                                                                                                 
