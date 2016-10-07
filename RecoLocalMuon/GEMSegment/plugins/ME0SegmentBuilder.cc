@@ -30,7 +30,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
   	
   LogDebug("ME0SegmentBuilder")<< "Total number of rechits in this event: " << recHits->size();
   
-  // Let's define the ensemble of ME0 devices having the same region, chambers number (phi), and eta partition
+  // Let's define the ensemble of ME0 devices having the same region, chamber number (phi), and eta partition
   // and layer run from 1 to number of layer. This is not the definition of one chamber... and indeed segments
   // could in principle run in different way... The concept of the DetLayer would be more appropriate...
 
@@ -45,6 +45,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // if one wants to recover segments that are at the border of a roll]
     ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
     // save current ME0RecHit in vector associated to the reference id
+    LogDebug("ME0SegmentBuilder") << " RecHit " << *it2 << " in ME0DetId " << it2->me0Id() << " added to the ensemble of ME0DetId " << id;
     ensembleRH[id.rawId()].push_back(it2->clone());    
   }
   
@@ -61,15 +62,15 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     }    
     ME0SegmentAlgorithmBase::ME0Ensemble ensemble(std::pair<const ME0EtaPartition*, std::map<uint32_t,const ME0EtaPartition*> >(firstlayer,ens));
     
+    ME0DetId mid(enIt->first);
+    ME0DetId midchamber(mid.chamberId());
+
     #ifdef EDM_ML_DEBUG
-    LogDebug("ME0SegmentBuilder") << "found " << me0RecHits.size() << " rechits in chamber " /*<< *enIt */;
+    LogDebug("ME0SegmentBuilder") << "found " << me0RecHits.size() << " rechits in chamber " << mid;
     #endif
     
     // given the chamber select the appropriate algo... and run it
     std::vector<ME0Segment> segv = algo->run(ensemble, me0RecHits);
-    ME0DetId mid(enIt->first);
-    
-    ME0DetId midchamber(mid.chamberId());
 
     #ifdef EDM_ML_DEBUG
     LogDebug("ME0SegmentBuilder") << "found " << segv.size() << " segments in chamber " << mid;
@@ -79,7 +80,11 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     //FIXME
     //HACK to make it a chamberID (taken from midchamber, not mid
     //oc.put(mid, segv.begin(), segv.end());
-    oc.put(midchamber, segv.begin(), segv.end());
+    oc.put(mid, segv.begin(), segv.end());
+
+    #ifdef EDM_ML_DEBUG
+    LogDebug("ME0SegmentBuilder") << segv.size() << " segments found in " << midchamber << " inserted correctly ";
+    #endif
   }
 }
 
