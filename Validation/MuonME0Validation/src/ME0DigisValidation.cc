@@ -41,22 +41,24 @@ void ME0DigisValidation::analyze(const edm::Event& e,
  edm::ESHandle<ME0Geometry> hGeom;
  iSetup.get<MuonGeometryRecord>().get(hGeom);
  const ME0Geometry* ME0Geometry_ =( &*hGeom);
-  edm::Handle<edm::PSimHitContainer> ME0Hits;
-  e.getByToken(InputTagToken_, ME0Hits);
+ edm::Handle<edm::PSimHitContainer> ME0Hits;
+ e.getByToken(InputTagToken_, ME0Hits);
+ 
+ edm::Handle<ME0DigiPreRecoCollection> ME0Digis;
+ e.getByToken(InputTagToken_Digi, ME0Digis);
+ 
+ edm::LogInfo("MuonME0DigisValidation")<<"Analyze started";
 
-  edm::Handle<ME0DigiPreRecoCollection> ME0Digis;
-  e.getByToken(InputTagToken_Digi, ME0Digis);
-
-  if (!ME0Hits.isValid() | !ME0Digis.isValid() ) {
-    edm::LogError("ME0DigisValidation") << "Cannot get ME0Hits/ME0Digis by Token simInputTagToken";
-    return ;
-  }
-
-  for (ME0DigiPreRecoCollection::DigiRangeIterator cItr=ME0Digis->begin(); cItr!=ME0Digis->end(); cItr++) {
-    ME0DetId id = (*cItr).first;
-
-    const GeomDet* gdet = ME0Geometry_->idToDet(id);
-    if ( gdet == nullptr) {
+ if (!ME0Hits.isValid() | !ME0Digis.isValid() ) {
+   edm::LogError("ME0DigisValidation") << "Cannot get ME0Hits/ME0Digis by Token simInputTagToken";
+   return ;
+ }
+ 
+ for (ME0DigiPreRecoCollection::DigiRangeIterator cItr=ME0Digis->begin(); cItr!=ME0Digis->end(); cItr++) {
+   ME0DetId id = (*cItr).first;
+   
+   const GeomDet* gdet = ME0Geometry_->idToDet(id);
+   if ( gdet == nullptr) {
       std::cout<<"Getting DetId failed. Discard this gem strip hit.Maybe it comes from unmatched geometry."<<std::endl;
       continue;
     }
@@ -68,6 +70,9 @@ void ME0DigisValidation::analyze(const edm::Event& e,
     ME0DigiPreRecoCollection::const_iterator digiItr;
     for (digiItr = (*cItr ).second.first; digiItr != (*cItr ).second.second; ++digiItr)
     {
+
+      edm::LogInfo("MuonME0DigisValidation")<<" Analyze :: digi "<<*digiItr;
+
       Short_t particleType = digiItr->pdgid();
       LocalPoint lp(digiItr->x(), digiItr->y(), 0);
 
