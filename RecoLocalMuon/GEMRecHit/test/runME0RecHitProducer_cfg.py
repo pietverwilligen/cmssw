@@ -11,6 +11,8 @@ process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 # process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
 process.load('Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff')
 process.load('Configuration.Geometry.GeometryExtended2023D1ME0Dev_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D5Reco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D5_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
@@ -19,6 +21,9 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+
+# Manual Customisation
+process.ME0GeometryESModule.use10EtaPart = cms.bool(True) # build geometry with 10 eta partitions
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
@@ -51,7 +56,8 @@ process.output = cms.OutputModule("PoolOutputModule",
 
 
 process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
-process.reco_step    = cms.Path(process.me0RecHits*process.me0Segments)
+# process.reco_step    = cms.Path(process.me0RecHits*process.me0Segments)
+process.reco_step    = cms.Path(process.me0RecHits)
 process.endjob_step  = cms.Path(process.endOfProcess)
 process.out_step     = cms.EndPath(process.output)
 
@@ -68,11 +74,12 @@ process.schedule = cms.Schedule(
 ### before issuing the scram command above                      
 ############################################################### 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-# process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
 # process.MessageLogger.categories.append("ME0NumberingScheme")       
+# process.MessageLogger.categories.append("ME0GeometryBuilderFromDDD")
 process.MessageLogger.categories.append("ME0RecHitProducer")
 process.MessageLogger.categories.append("ME0RecHitBaseAlgo")
 process.MessageLogger.categories.append("ME0RecHitStandardAlgo")
+process.MessageLogger.categories.append("ME0SegmentProducer")
 # process.MessageLogger.categories.append("Muon|RecoMuon|RecoMuonDetLayers|MuonME0DetLayerGeometryBuilder")
 process.MessageLogger.categories.append("Muon")
 process.MessageLogger.categories.append("RecoMuon")
@@ -89,7 +96,7 @@ process.MessageLogger.cout = cms.untracked.PSet(
     ME0RecHitProducer              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     ME0RecHitBaseAlgo              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     ME0RecHitStandardAlgo          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    ME0RecHitStandardAlgo          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    ME0SegmentProducer             = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     Muon                           = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     RecoMuon                       = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     RecoMuonDetLayers              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
