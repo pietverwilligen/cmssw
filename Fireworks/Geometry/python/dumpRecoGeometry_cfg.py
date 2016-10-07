@@ -97,7 +97,19 @@ def recoGeoLoad(score):
        process.GlobalTag.globaltag = autoCond['mc']
        process.load('Configuration.Geometry.GeometryExtended2015MuonGEMDevReco_cff')
 
-    elif score == "MaPSA":
+    elif  score == "2023D1":
+       process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+       from Configuration.AlCa.autoCond import autoCond
+       process.GlobalTag.globaltag = autoCond['run2_mc']
+       process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+
+    elif  score == "2023D1ME0Dev":
+       process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+       from Configuration.AlCa.autoCond import autoCond
+       process.GlobalTag.globaltag = autoCond['run2_mc']
+       process.load('Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff')
+
+    elif  score == "MaPSA":
        process.load('Geometry.TrackerGeometryBuilder.idealForDigiTrackerGeometry_cff')
        process.load('Geometry.TrackerCommonData.mapsaGeometryXML_cfi')
        process.load('Geometry.TrackerNumberingBuilder.trackerNumberingGeometry_cfi')
@@ -109,7 +121,7 @@ def recoGeoLoad(score):
 
        process.load('Geometry.CommonDetUnit.bareGlobalTrackingGeometry_cfi')
 
-    elif score == "SLHC": # orig dumpFWRecoGeometrySLHC_cfg.py
+    elif  score == "SLHC": # orig dumpFWRecoGeometrySLHC_cfg.py
        process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
        from Configuration.AlCa.autoCond import autoCond
        process.GlobalTag.globaltag = autoCond['mc']
