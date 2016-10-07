@@ -56,8 +56,8 @@ process.output = cms.OutputModule("PoolOutputModule",
 
 
 process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
-# process.reco_step    = cms.Path(process.me0RecHits*process.me0Segments)
-process.reco_step    = cms.Path(process.me0RecHits)
+process.reco_step    = cms.Path(process.me0RecHits*process.me0Segments)
+# process.reco_step    = cms.Path(process.me0RecHits)
 process.endjob_step  = cms.Path(process.endOfProcess)
 process.out_step     = cms.EndPath(process.output)
 
@@ -80,6 +80,9 @@ process.MessageLogger.categories.append("ME0RecHitProducer")
 process.MessageLogger.categories.append("ME0RecHitBaseAlgo")
 process.MessageLogger.categories.append("ME0RecHitStandardAlgo")
 process.MessageLogger.categories.append("ME0SegmentProducer")
+process.MessageLogger.categories.append("ME0SegmentBuilder")
+# process.MessageLogger.categories.append("ME0SegmentAlgorithm")
+# process.MessageLogger.categories.append("MuSegFit")
 # process.MessageLogger.categories.append("Muon|RecoMuon|RecoMuonDetLayers|MuonME0DetLayerGeometryBuilder")
 process.MessageLogger.categories.append("Muon")
 process.MessageLogger.categories.append("RecoMuon")
@@ -97,6 +100,9 @@ process.MessageLogger.cout = cms.untracked.PSet(
     ME0RecHitBaseAlgo              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     ME0RecHitStandardAlgo          = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     ME0SegmentProducer             = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    ME0SegmentBuilder              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # ME0SegmentAlgorithm            = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    # MuSegFit                       = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     Muon                           = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     RecoMuon                       = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
     RecoMuonDetLayers              = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
