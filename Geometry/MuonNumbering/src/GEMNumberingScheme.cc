@@ -61,14 +61,10 @@ int GEMNumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
   // The long super chambers in station 2 are assigned *station 3* due 
   // to the current limitation in the definition of the GEMDetId, 
   // i.e. only 2 layers available per station.
-  //  ring    = num.getSuperNo(theRingLevel);
+  ring    = num.getSuperNo(theRingLevel);
+  station = num.getSuperNo(theStationLevel)+ring-1;
   // GEM are only on the first ring
   ring = 1;
-  station = num.getSuperNo(theStationLevel);
-#ifdef LOCAL_DEBUG
-  std::cout << "GEMNumbering: Ring " << ring << " Station " 
-	    << num.getSuperNo(theStationLevel) << ":" << station << std::endl;
-#endif
   
   roll    = num.getBaseNo(theRollLevel)+1;
   const int copyno = num.getBaseNo(theSectorLevel) + 1;
@@ -109,3 +105,7 @@ int GEMNumberingScheme::baseNumberToUnitNumber(const MuonBaseNumber& num) {
       
   return id.rawId();
 }
+
+
+
+
