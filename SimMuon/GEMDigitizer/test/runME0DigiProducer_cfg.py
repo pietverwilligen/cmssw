@@ -7,16 +7,20 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D5Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D5_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D1ME0DevReco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D1ME0Dev_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D5Reco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D5_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
-process.load('Configuration.StandardSequences.SimIdeal_cff')
-process.load('Configuration.StandardSequences.Generator_cff')
-process.load('Configuration.StandardSequences.Digi_cff')
+# process.load('Configuration.StandardSequences.SimIdeal_cff')
+# process.load('Configuration.StandardSequences.Generator_cff')
+# process.load('Configuration.StandardSequences.Digi_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
@@ -24,7 +28,7 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-    'file:step1.root'
+    'file:/lustre/home/piet/cmshome/SLC6/ME0_Studies/810_ME0Granularity/CMSSW_8_1_0_pre11/src/MyCmsDriverCommands/step3.root'
     # 'file:/lustre/home/piet/cmshome/SLC6/ME0_Studies/810_ME0Granularity/CMSSW_8_1_0_pre11/src/MyCmsDriverCommands/step2.root'
 
     )
@@ -80,13 +84,6 @@ process.MessageLogger.cout = cms.untracked.PSet(
     # ME0DigiGaussianModelNoise = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
 )
 
-
-
-
-
-
-
-
 # customization of the process.pdigi sequence to add the GEM digitizer
 # from SimMuon.GEMDigitizer.customizeGEMDigi import *
 # process = customize_digi_addGEM_addME0_muon_only(process) # only muon+GEM+ME0 digi
@@ -96,7 +93,17 @@ process.output = cms.OutputModule("PoolOutputModule",
         'file:out_digi_me0.test.root'
     ),
     outputCommands = cms.untracked.vstring(
-        'keep  *_*_*_*',
+        'drop *_mix_*_*',
+
+        # 'drop *_*_*_*'
+        # 'keep  *_*_*_SIM',
+        # 'keep  *_*_*_HLT',
+        # 'keep  *_*_*_RECO',
+        # 'keep  *ME0*_*_*_*',
+        # 'keep  *_*ME0*_*_*',
+        # 'keep  *_*_*ME0*_*',
+
+        # 'keep  *_*_*_*',
         #'drop CastorDataFramesSorted_simCastorDigis_*_GEMDIGI'
         # drop all CF stuff
         ##'drop *_mix_*_*',
@@ -120,9 +127,15 @@ process.output = cms.OutputModule("PoolOutputModule",
     )
 )
 
+# Customisation from command line
+# process.load('Geometry.GEMGeometryBuilder.me0Geometry_cfi')
+# process.ME0GeometryESModule.useDDD = cms.bool(True)
+# process.ME0GeometryESModule.use10EtaPart = cms.bool(True)
+
 
 process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
-process.digi_step    = cms.Path(process.pdigi)
+# process.digi_step    = cms.Path(process.pdigi)
+process.digi_step    = cms.Path(process.simMuonME0Digis)
 process.endjob_step  = cms.Path(process.endOfProcess)
 process.out_step     = cms.EndPath(process.output)
 
@@ -131,3 +144,5 @@ process.schedule = cms.Schedule(
     process.endjob_step,
     process.out_step
 )
+
+
