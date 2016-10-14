@@ -38,8 +38,8 @@ public:
 
   virtual void simulateNoise(const ME0EtaPartition*, CLHEP::HepRandomEngine* engine) = 0;
   
-  virtual std::vector<std::pair<int,int> > 
-    simulateClustering(const ME0EtaPartition*, const PSimHit*, const int, CLHEP::HepRandomEngine* engine) = 0;
+  virtual std::vector<ME0Digi>
+    simulateClustering(const ME0EtaPartition*, LocalPoint, double, int, bool, CLHEP::HepRandomEngine* engine) = 0;
 
   void fillDigis(int rollDetId, ME0DigiCollection&);
 
