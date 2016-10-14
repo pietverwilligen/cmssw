@@ -13,10 +13,6 @@ class ME0Geometry;
 namespace CLHEP
 {
   class HepRandomEngine;
-  class RandFlat;
-  class RandGaussQ;
-  class RandPoissonQ;
-  class RandExponential;
 }
 class ME0DigiGaussianModel: public ME0DigiModel
 {
@@ -26,12 +22,10 @@ public:
   // void   setupEtaPartition(const ME0EtaPartition*);
   void   simulateSignal(const ME0EtaPartition*, const edm::PSimHitContainer&, CLHEP::HepRandomEngine*);
   void   simulateNoise(const ME0EtaPartition*, CLHEP::HepRandomEngine*);
-  void   implementDeadTime();
+  // void   implementDeadTime();
   std::vector<ME0Digi> simulateClustering(const ME0EtaPartition*, LocalPoint, double, int, bool, CLHEP::HepRandomEngine*);
   double correctSigmaU(const ME0EtaPartition*, double);
-  void   setup()
-  {
-  }
+  void   setup() {}
 private:
   double sigma_t;
   double sigma_u;
