@@ -236,7 +236,7 @@ std::vector<ME0Digi> ME0DigiGaussianModel::simulateClustering(const ME0EtaPartit
 }
 
 
-void ME0DigiGaussianModel::implementDeadTime(){} // not implemented for now ... effect is 10^-4 ... maybe not even the right place to implement it here
+// void ME0DigiGaussianModel::implementDeadTime(){} // not implemented for now ... effect is 10^-4 ... maybe not even the right place to implement it here
 
 
 void ME0DigiGaussianModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::HepRandomEngine* engine)
@@ -302,7 +302,7 @@ void ME0DigiGaussianModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::Hep
       double myrandP = CLHEP::RandFlat::shoot(engine, 0., 1.);
       int pdgid = 0;
       if (myrandP <= 0.5) pdgid = -11; // electron
-      else 	            pdgid = 11;  // positron
+      else 	          pdgid =  11;  // positron
       edm::LogVerbatim("ME0DigiGaussianModelNoise") << "[elebkg]["<<roll->id().rawId()<<"] =====> electron hit in "<<roll->id()<<" pdgid = "<<pdgid<<" bx = "<<bx
 						    <<" ==> digitized"
 						    <<" at strip = "<<centralStrip<<" time = "<<time<<" [ns]"; 
