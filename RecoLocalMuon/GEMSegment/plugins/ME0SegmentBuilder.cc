@@ -11,13 +11,16 @@
 
 ME0SegmentBuilder::ME0SegmentBuilder(const edm::ParameterSet& ps) : geom_(0) {
   
+
   // Algo name
-  std::string algoName = ps.getParameter<std::string>("algo_name");
-  
+  int chosenAlgo = ps.getParameter<int>("algo_type") - 1;
+  // Find appropriate ParameterSets for each algo type                                                                                                                                              
+  std::vector<edm::ParameterSet> algoPSets = ps.getParameter<std::vector<edm::ParameterSet> >("algo_psets");
+
+  edm::ParameterSet segAlgoPSet = algoPSets[chosenAlgo].getParameter<edm::ParameterSet>("algo_pset");
+  std::string algoName = algoPSets[chosenAlgo].getParameter<std::string>("algo_name");
   LogDebug("ME0SegmentBuilder")<< "ME0SegmentBuilder algorithm name: " << algoName;
   
-  // SegAlgo parameter set
-  edm::ParameterSet segAlgoPSet = ps.getParameter<edm::ParameterSet>("algo_pset");
   
   // Ask factory to build this algorithm, giving it appropriate ParameterSet  
   algo = std::unique_ptr<ME0SegmentAlgorithmBase>(ME0SegmentBuilderPluginFactory::get()->create(algoName, segAlgoPSet));

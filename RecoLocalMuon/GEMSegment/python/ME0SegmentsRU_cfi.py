@@ -15,6 +15,6 @@ RU_ME0 = cms.PSet(
 
 ME0SegAlgoRU = cms.PSet(
     algo_name = cms.string('ME0SegAlgoRU'),
-    algo_psets = cms.VPSet(cms.PSet(RU_ME0))
+    algo_pset = cms.PSet(cms.PSet(RU_ME0))
 )
 

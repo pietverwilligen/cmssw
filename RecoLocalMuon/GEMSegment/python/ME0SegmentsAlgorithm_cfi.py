@@ -1,8 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-me0Segments = cms.EDProducer("ME0SegmentProducer",
-    me0RecHitLabel = cms.InputTag("me0RecHits"),
-    algo_name = cms.string("ME0SegAlgoST"),                             
+ME0SegmentAlgorithm = cms.PSet(
+    algo_name = cms.string("ME0SegmentAlgorithm"),                             
     algo_pset = cms.PSet(
         ME0Debug = cms.untracked.bool(True),
         minHitsPerSegment = cms.uint32(3),
