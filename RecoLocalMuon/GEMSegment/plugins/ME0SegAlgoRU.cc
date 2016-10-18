@@ -190,8 +190,8 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
           const ME0RecHit* h2 = *i2; 
 	  if (this->areHitsCloseInEta(h1, h2) && this->areHitsCloseInGlobalPhi(h1, h2)) { 
 	    proto_segment.clear(); 
-	    if (!addHit(h1, layer1))continue; 
-	    if (!addHit(h2, layer2))continue; 
+	    if (!this->addHit(h1, layer1))continue; 
+	    if (!this->addHit(h2, layer2))continue; 
 
 	    // Can only add hits if already have a segment
 	    if ( sfit_ ) this->tryAddingHitsToSegment(rechits, used, layerIndex, i1, i2);  
@@ -308,7 +308,7 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
 
     if(!doCollisions && search_disp){
 
-      //reset params and flags for the next chamber                                                                                                                           
+      //reset params and flags for the next ensemble                                                                                                                           
       search_disp = false;
       doCollisions = true;
       dRMax = 2.0;
