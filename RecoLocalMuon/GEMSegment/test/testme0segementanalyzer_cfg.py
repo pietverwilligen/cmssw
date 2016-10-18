@@ -2,8 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("TestME0Segment")
 process.load("FWCore.MessageService.MessageLogger_cfi")
-
-process.load('Configuration.Geometry.GeometryExtended2015MuonGEMDevReco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
 # process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
 # process.load("Geometry.GEMGeometry.me0Geometry_cfi")
 # process.load("Geometry.MuonNumbering.muonNumberingInitialization_cfi")
@@ -13,8 +12,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         # 'file:./out_rec_me0.test2.root'
-#        'file:out_local_reco_me0segment.root'
-'file:/afs/cern.ch/work/m/mmaggi/ME0/SEGMENTS/TEST/CMSSW_8_1_0_pre11/src/McProd/out_local_reco_me0segment.root'
+        'file:out_local_reco_me0segment.root'
     )
 )
 
