@@ -5,12 +5,12 @@ RU_ME0 = cms.PSet(
     chi2Norm_2D_ = cms.double(35),
     chi2_str = cms.double(50.0),
     chi2Max = cms.double(100.0),
-    dPhiIntMax = cms.double(0.005),
-    dPhiMax = cms.double(0.006),
+    dPhiIntMax = cms.double(0.1),
+    dPhiMax = cms.double(0.1),
     wideSeg = cms.double(3.0),
     minLayersApart = cms.int32(1),
-    dRIntMax = cms.double(2.0),
-    dRMax = cms.double(1.5)
+    dRIntMax = cms.double(10.0),
+    dRMax = cms.double(10.0)
 )
 
 ME0SegAlgoRU = cms.PSet(
