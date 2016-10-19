@@ -11,13 +11,16 @@
 
 ME0SegmentBuilder::ME0SegmentBuilder(const edm::ParameterSet& ps) : geom_(0) {
   
+
   // Algo name
-  std::string algoName = ps.getParameter<std::string>("algo_name");
-  
+  int chosenAlgo = ps.getParameter<int>("algo_type") - 1;
+  // Find appropriate ParameterSets for each algo type                                                                                                                                              
+  std::vector<edm::ParameterSet> algoPSets = ps.getParameter<std::vector<edm::ParameterSet> >("algo_psets");
+
+  edm::ParameterSet segAlgoPSet = algoPSets[chosenAlgo].getParameter<edm::ParameterSet>("algo_pset");
+  std::string algoName = algoPSets[chosenAlgo].getParameter<std::string>("algo_name");
   LogDebug("ME0SegmentBuilder")<< "ME0SegmentBuilder algorithm name: " << algoName;
   
-  // SegAlgo parameter set
-  edm::ParameterSet segAlgoPSet = ps.getParameter<edm::ParameterSet>("algo_pset");
   
   // Ask factory to build this algorithm, giving it appropriate ParameterSet  
   algo = std::unique_ptr<ME0SegmentAlgorithmBase>(ME0SegmentBuilderPluginFactory::get()->create(algoName, segAlgoPSet));
@@ -47,7 +50,9 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());    
   }
-  
+
+  std::map<uint32_t, std::vector<ME0Segment> > ensembleSeg;  // collect here all segments from the same chamber
+
   for(auto enIt=ensembleRH.begin(); enIt != ensembleRH.end(); ++enIt) {
     
     std::vector<const ME0RecHit*> me0RecHits;
@@ -61,25 +66,30 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     }    
     ME0SegmentAlgorithmBase::ME0Ensemble ensemble(std::pair<const ME0EtaPartition*, std::map<uint32_t,const ME0EtaPartition*> >(firstlayer,ens));
     
+    ME0DetId mid(enIt->first);
     #ifdef EDM_ML_DEBUG
-    LogDebug("ME0SegmentBuilder") << "found " << me0RecHits.size() << " rechits in chamber " /*<< *enIt */;
+    LogDebug("ME0SegmentBuilder") << "found " << me0RecHits.size() << " rechits in etapart " << mid;
     #endif
     
     // given the chamber select the appropriate algo... and run it
     std::vector<ME0Segment> segv = algo->run(ensemble, me0RecHits);
-    ME0DetId mid(enIt->first);
     
-    ME0DetId midchamber(mid.chamberId());
-
     #ifdef EDM_ML_DEBUG
-    LogDebug("ME0SegmentBuilder") << "found " << segv.size() << " segments in chamber " << mid;
+    LogDebug("ME0SegmentBuilder") << "found " << segv.size() << " segments in etapart " << mid;
     #endif
     
     // Add the segments to master collection
-    //FIXME
-    //HACK to make it a chamberID (taken from midchamber, not mid
-    //oc.put(mid, segv.begin(), segv.end());
-    oc.put(midchamber, segv.begin(), segv.end());
+    // oc.put(mid, segv.begin(), segv.end());
+
+    // Add the segments to the chamber segment collection
+    ME0DetId midch = mid.chamberId();
+    ensembleSeg[midch.rawId()].insert(ensembleSeg[midch.rawId()].end(), segv.begin(), segv.end());
+  }
+
+  for(auto segIt=ensembleSeg.begin(); segIt != ensembleSeg.end(); ++segIt) {
+    // Add the segments to master collection
+    ME0DetId midch(segIt->first);
+    oc.put(midch, segIt->second.begin(), segIt->second.end());
   }
 }
 

@@ -307,6 +307,7 @@ void ME0SegmentAlgorithm::buildSegments(const ME0Ensemble& ensemble, const Ensem
     proto_segment.push_back(*rh);
 
     // for segFit - using local point in first partition frame
+    // ?? This is instead the eta partition of the first rechit in the ensemble..
     const ME0EtaPartition * thePartition   = (ensemble.second.find((*rh)->me0Id()))->second;
     GlobalPoint gp = thePartition->toGlobal((*rh)->localPosition());
     const LocalPoint lp = refPart->toLocal(gp);    

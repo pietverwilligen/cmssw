@@ -2,8 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("TestME0Segment")
 process.load("FWCore.MessageService.MessageLogger_cfi")
-
-process.load('Configuration.Geometry.GeometryExtended2015MuonGEMDevReco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
 # process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
 # process.load("Geometry.GEMGeometry.me0Geometry_cfi")
 # process.load("Geometry.MuonNumbering.muonNumberingInitialization_cfi")
