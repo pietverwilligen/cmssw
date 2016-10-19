@@ -37,11 +37,14 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include <DataFormats/GEMRecHit/interface/ME0SegmentCollection.h>
+#include <DataFormats/GEMRecHit/interface/ME0RecHitCollection.h>
  
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include <Geometry/GEMGeometry/interface/ME0EtaPartition.h>
 #include <Geometry/Records/interface/MuonGeometryRecord.h>
 #include <DataFormats/MuonDetId/interface/ME0DetId.h>
+#include "DataFormats/Math/interface/deltaPhi.h"
+
 //
 // class declaration
 //
@@ -60,9 +63,17 @@ class TestME0SegmentAnalyzer : public edm::EDAnalyzer {
   edm::ESHandle<ME0Geometry> me0Geom;
 
   edm::EDGetTokenT<ME0SegmentCollection> ME0Segment_Token;
+  edm::EDGetTokenT<ME0RecHitCollection> ME0RecHit_Token;
 
   std::string rootFileName;
+
   std::unique_ptr<TFile> outputfile;
+
+  std::unique_ptr<TH1F> ME0_recdR;
+  std::unique_ptr<TH1F> ME0_recdPhi;
+  std::unique_ptr<TH1F> ME0_segdR;
+  std::unique_ptr<TH1F> ME0_segdPhi;
+
   std::unique_ptr<TH1F> ME0_fitchi2;
   std::unique_ptr<TH1F> ME0_Residuals_x;
   std::unique_ptr<TH1F> ME0_Residuals_l1_x;
@@ -104,10 +115,15 @@ TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
 {
    //now do what ever initialization is needed
   ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments"));
+  ME0RecHit_Token  = consumes<ME0RecHitCollection>(edm::InputTag("me0RecHits"));
 
   rootFileName  = iConfig.getUntrackedParameter<std::string>("RootFileName");
   outputfile.reset(TFile::Open(rootFileName.c_str(), "RECREATE"));
 
+  ME0_recdR   = std::unique_ptr<TH1F>(new TH1F("rechitdR","rechidR",50,-10.,10.)); 
+  ME0_recdPhi = std::unique_ptr<TH1F>(new TH1F("rechitdphi","rechidphi",50,-0.005,0.005)); 
+  ME0_segdR   = std::unique_ptr<TH1F>(new TH1F("segmentdR","segmentdR",50,-10.,10.)); 
+  ME0_segdPhi = std::unique_ptr<TH1F>(new TH1F("segmentdphi","segmentdphi",50,-0.1,0.1)); 
   ME0_fitchi2 = std::unique_ptr<TH1F>(new TH1F("chi2Vsndf","chi2Vsndf",50,0.,5.)); 
   ME0_Residuals_x    = std::unique_ptr<TH1F>(new TH1F("xME0Res","xME0Res",100,-0.5,0.5));
   ME0_Residuals_l1_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l1","xME0Res_l1",100,-0.5,0.5));
@@ -142,6 +158,10 @@ TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
 
 TestME0SegmentAnalyzer::~TestME0SegmentAnalyzer()
 {
+  ME0_recdR->Write();
+  ME0_recdPhi->Write();
+  ME0_segdR->Write();
+  ME0_segdPhi->Write();
   ME0_fitchi2->Write();
   ME0_Residuals_x->Write();
   ME0_Residuals_l1_x->Write();
@@ -190,7 +210,37 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   // ================
   edm::Handle<ME0SegmentCollection> me0Segment;
   iEvent.getByToken(ME0Segment_Token, me0Segment);
+  edm::Handle<ME0RecHitCollection> me0RecHit;
+  iEvent.getByToken(ME0RecHit_Token, me0RecHit);
 
+  std::cout <<"Number of rec hit "<<me0RecHit->size()<<std::endl;
+  float rlmax = 0.;
+  float rlmin = 999999.;
+  float plmin = 999999.;
+  float plmax = 999999.;
+  int lmin = 100;
+  int lmax = 0;
+  for (auto recHit = me0RecHit->begin(); recHit != me0RecHit->end(); recHit++) {
+    ME0DetId id = recHit->me0Id();
+    auto roll = me0Geom->etaPartition(id);
+    std::cout <<"   Original ME0DetID "<<id<<std::endl;    
+    int layer = id.layer();
+    if (layer < lmin){
+      lmin = layer;
+      rlmin = (roll->toGlobal(recHit->localPosition())).perp();
+      plmin = (roll->toGlobal(recHit->localPosition())).barePhi();
+    }
+    if (layer > lmax){
+      lmax = layer;
+      rlmax = (roll->toGlobal(recHit->localPosition())).perp();
+      plmax = (roll->toGlobal(recHit->localPosition())).barePhi();
+    }
+  }
+  std::cout <<" Radius  max min  and delta "<<rlmax<<"  "<<rlmin <<" " <<rlmax-rlmin<<std::endl;
+  std::cout <<" Phi     max min  and delta "<<plmax<<"  "<<plmin <<" " <<plmax-plmin<<std::endl;
+  ME0_recdR->Fill(rlmax-rlmin);
+  ME0_recdPhi->Fill(fabs(deltaPhi(plmax,plmin)));
+  
   std::cout <<"Number of Segments "<<me0Segment->size()<<std::endl;
   for (auto me0s = me0Segment->begin(); me0s != me0Segment->end(); me0s++) {
     // The ME0 Ensemble DetId refers to layer = 1   
@@ -200,7 +250,7 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     std::cout <<"   Global Segment Position "<<  roll->toGlobal(me0s->localPosition())<<std::endl;
     auto segLP = me0s->localPosition();
     auto segLD = me0s->localDirection();
-    std::cout <<"   Global Direction theta = "<<segLD.theta()<<" phi="<<segLD.phi()<<std::endl;
+    std::cout <<"   Local Direction theta = "<<segLD.theta()<<" phi="<<segLD.phi()<<std::endl;
     ME0_fitchi2->Fill(me0s->chi2()*1.0/me0s->degreesOfFreedom());
     std::cout <<"   Chi2 = "<<me0s->chi2()<<" ndof = "<<me0s->degreesOfFreedom()<<" ==> chi2/ndof = "<<me0s->chi2()*1.0/me0s->degreesOfFreedom()<<std::endl;
 
@@ -214,8 +264,8 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
       auto erhLEP = rh->localPositionError();
       auto rhGP = rhr->toGlobal(rhLP); 
       auto rhLPSegm = roll->toLocal(rhGP);
-      float xe  = segLP.x()+segLD.x()*rhLPSegm.z()/segLD.z();
-      float ye  = segLP.y()+segLD.y()*rhLPSegm.z()/segLD.z();
+      float xe  = segLP.x()+segLD.x()*(rhLPSegm.z()-segLP.z())/segLD.z();
+      float ye  = segLP.y()+segLD.y()*(rhLPSegm.z()-segLP.z())/segLD.z();
       float ze = rhLPSegm.z();
       LocalPoint extrPoint(xe,ye,ze); // in segment rest frame
       auto extSegm = rhr->toLocal(roll->toGlobal(extrPoint)); // in layer restframe
