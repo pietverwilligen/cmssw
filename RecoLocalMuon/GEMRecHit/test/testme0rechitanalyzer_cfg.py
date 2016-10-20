@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D6Reco_cff')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 

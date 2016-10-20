@@ -36,6 +36,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
   // Let's define the ensemble of ME0 devices having the same region, chambers number (phi), and eta partition
   // and layer run from 1 to number of layer. This is not the definition of one chamber... and indeed segments
   // could in principle run in different way... The concept of the DetLayer would be more appropriate...
+  // This is not working properly
 
   std::map<uint32_t, std::vector<ME0RecHit*> > ensembleRH;
     
@@ -44,9 +45,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // ME0 Ensemble is defined by assigning all the ME0DetIds of the same "superchamber" 
     // (i.e. region same, chamber same) to the DetId of the first layer
     // At this point there is only one roll, so nothing to be worried about ...
-    // [At a later stage one will have to mask also the rolls 
-    // if one wants to recover segments that are at the border of a roll]
-    ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
+    ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),1);
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());    
   }
