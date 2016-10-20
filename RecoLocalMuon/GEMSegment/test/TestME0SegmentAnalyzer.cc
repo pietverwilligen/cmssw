@@ -38,7 +38,8 @@
 
 #include <DataFormats/GEMRecHit/interface/ME0SegmentCollection.h>
 #include <DataFormats/GEMRecHit/interface/ME0RecHitCollection.h>
- 
+#include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include <Geometry/GEMGeometry/interface/ME0EtaPartition.h>
 #include <Geometry/Records/interface/MuonGeometryRecord.h>
@@ -64,6 +65,7 @@ class TestME0SegmentAnalyzer : public edm::EDAnalyzer {
 
   edm::EDGetTokenT<ME0SegmentCollection> ME0Segment_Token;
   edm::EDGetTokenT<ME0RecHitCollection> ME0RecHit_Token;
+  edm::EDGetTokenT<ME0DigiPreRecoCollection> ME0Digi_Token;
 
   std::string rootFileName;
 
@@ -116,6 +118,7 @@ TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
    //now do what ever initialization is needed
   ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments"));
   ME0RecHit_Token  = consumes<ME0RecHitCollection>(edm::InputTag("me0RecHits"));
+  ME0Digi_Token  = consumes<ME0DigiPreRecoCollection>(edm::InputTag("simMuonME0Digis"));
 
   rootFileName  = iConfig.getUntrackedParameter<std::string>("RootFileName");
   outputfile.reset(TFile::Open(rootFileName.c_str(), "RECREATE"));
@@ -212,6 +215,18 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   iEvent.getByToken(ME0Segment_Token, me0Segment);
   edm::Handle<ME0RecHitCollection> me0RecHit;
   iEvent.getByToken(ME0RecHit_Token, me0RecHit);
+  edm::Handle<ME0DigiPreRecoCollection> me0Digi;
+  iEvent.getByToken(ME0Digi_Token, me0Digi);
+  
+  //  std::cout <<"Numner of digi "<<me0Digi->size()<<std::endl;
+  ME0DigiPreRecoCollection::DigiRangeIterator me0dgIt;
+  for (me0dgIt = me0Digi->begin(); me0dgIt != me0Digi->end();
+       ++me0dgIt){
+
+    const ME0DetId me0Id = (*me0dgIt).first;
+    std::cout <<" Original DIGI DET ID "<<me0Id<<std::endl;
+
+  }
 
   std::cout <<"Number of rec hit "<<me0RecHit->size()<<std::endl;
   float rlmax = 0.;
