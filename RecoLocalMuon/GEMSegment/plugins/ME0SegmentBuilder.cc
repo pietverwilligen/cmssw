@@ -45,6 +45,8 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // ME0 Ensemble is defined by assigning all the ME0DetIds of the same "superchamber" 
     // (i.e. region same, chamber same) to the DetId of the first layer
     // At this point there is only one roll, so nothing to be worried about ...
+    // reference fram is layer 1 and eta partition 1.  this will not work if no eta partition 
+    // are present...
     ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),1);
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());    
