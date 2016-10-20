@@ -25,6 +25,7 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
     'file:step1.root'
+    # 'file:/lustre/home/piet/cmshome/SLC6/ME0_Studies/810_ME0Granularity/CMSSW_8_1_0_pre11/src/MyCmsDriverCommands/step2.root'
     )
 )
 process.options = cms.untracked.PSet(
