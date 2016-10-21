@@ -78,7 +78,7 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
   int maxlayer = -1;
   float zmin = 0;
   float zmax = 0;
-  for(unsigned int i = 0; i < rechits.size(); i++) { 
+  for(unsigned int i = 0; i < rechits.size(); i++) {  
     int layer = rechits[i]->me0Id().layer();
     recHits_per_layer[layer-1]++;//count rh per chamber 
     layerIndex[i] = layer;
@@ -192,10 +192,8 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
 	    proto_segment.clear(); 
 	    if (!this->addHit(h1, layer1))continue; 
 	    if (!this->addHit(h2, layer2))continue; 
-
 	    // Can only add hits if already have a segment
 	    if ( sfit_ ) this->tryAddingHitsToSegment(rechits, used, layerIndex, i1, i2);  
-
 	    segok = this->isSegmentGood(rechits); 
 	    if (segok) { 
 	      if(proto_segment.size() > n_seg_min){
@@ -403,7 +401,6 @@ void ME0SegAlgoRU::tryAddingHitsToSegment(const EnsembleHitContainer& rechits,
   EnsembleHitContainerCIt ib = rechits.begin(); 
   EnsembleHitContainerCIt ie = rechits.end(); 
   for (EnsembleHitContainerCIt i = ib; i != ie; ++i) { 
-
     if(layerIndex[i1-ib]<layerIndex[i2-ib]){ 
       if (layerIndex[i-ib] <= layerIndex[i1-ib] || layerIndex[i-ib] >= layerIndex[i2-ib] || i  == i1 || i == i2 || used[i-ib]){  
 	if ( i  == i1 || i == i2 || used[i-ib]) 
@@ -420,8 +417,8 @@ void ME0SegAlgoRU::tryAddingHitsToSegment(const EnsembleHitContainer& rechits,
     const ME0RecHit* h = *i; 
     if (this->isHitNearSegment(h)) {
       // Don't consider alternate hits on layers holding the two starting points 
-      if (this->hasHitOnLayer(layer)) { 	   
-	if (proto_segment.size() <= 2)continue; 
+      if (this->hasHitOnLayer(layer)) { 
+	if (proto_segment.size() <= 2) continue; 
 	this->compareProtoSegment(h, layer); 
       }  
       else{ 
@@ -451,12 +448,11 @@ bool ME0SegAlgoRU::areHitsCloseInEta(const ME0RecHit* h1, const ME0RecHit* h2) c
   float dR = 9999;
   if (doCollisions){
     if ( abs(h1z) > abs(h2z) ) {
-      good = (etaP1==etaP2 || etaP1 == etaP2+1);
+      good = (etaP1==etaP2 || etaP1 == etaP2-1);
     }else{
-      good = (etaP1==etaP2 || etaP2 == etaP1+1);
+      good = (etaP1==etaP2 || etaP2 == etaP1-1);
     }	 
     dR = fabs(gp1.perp()-gp2.perp());
-    
   }else{
     good = std::abs(etaP1-etaP2) <= 1;
     dR = 0;
@@ -514,6 +510,7 @@ bool ME0SegAlgoRU::isHitNearSegment(const ME0RecHit* h) const {
 
   float R =  hp.perp(); 
   int layer = h->me0Id().layer(); 
+
   float r_interpolated = this->fit_r_phi(r_glob,layer); 
   float dr = fabs(r_interpolated - R); 
 
@@ -525,7 +522,8 @@ float ME0SegAlgoRU::phiAtZ(float z) const {
   if ( !sfit_ ) return 0.;
 
   // Returns a phi in [ 0, 2*pi )
-  const ME0EtaPartition* l1 = theEnsemble.second.find((*(proto_segment.begin()))->me0Id())->second;
+  //  const ME0EtaPartition* l1 = theEnsemble.second.find((*(proto_segment.begin()))->me0Id())->second;
+  const ME0EtaPartition* l1 = theEnsemble.first;
   GlobalPoint gp = l1->toGlobal(sfit_->intercept());
   GlobalVector gv = l1->toGlobal(sfit_->localdir());
 
@@ -580,7 +578,6 @@ bool ME0SegAlgoRU::addHit(const ME0RecHit* aHit, int layer) {
   for(it = proto_segment.begin(); it != proto_segment.end(); it++)
     if (((*it)->me0Id().layer() == layer) && (aHit != (*it)))
       return false;
-
   proto_segment.push_back(aHit);
   // make a fit
   this->updateParameters();
