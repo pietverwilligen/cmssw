@@ -104,6 +104,11 @@ AlgebraicMatrix ME0Segment::projectionMatrix() const {
   return (theProjectionMatrix.getMatrix());
 }
 
+ME0DetId
+ME0Segment::me0DetId() const{ 
+  ME0DetId mid(this->geographicalId());
+  return  ME0DetId(mid.region(),1,mid.chamber(),1); 
+}
 //
 void ME0Segment::print() const {
   LogDebug("ME0Segment") << *this;
