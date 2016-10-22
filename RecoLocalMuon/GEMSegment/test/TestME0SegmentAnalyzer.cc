@@ -221,9 +221,15 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   ME0DigiPreRecoCollection::DigiRangeIterator me0dgIt;
   for (me0dgIt = me0Digi->begin(); me0dgIt != me0Digi->end();
        ++me0dgIt){
-
     const ME0DetId me0Id = (*me0dgIt).first;
-    std::cout <<" Original DIGI DET ID "<<me0Id<<std::endl;
+    const ME0DigiPreRecoCollection::Range& digiRange = (*me0dgIt).second;
+    std::cout <<" Original DIGI DET ID "<<me0Id<< " # digis = "<<(digiRange.second-digiRange.first+1)<<std::endl;
+
+    // Get the iterators over the digis associated with this LayerId                                                                                         
+    for (ME0DigiPreRecoCollection::const_iterator digi = digiRange.first;
+	 digi != digiRange.second;digi++) {
+      std::cout <<digi->x()<<digi->y()<<std::endl;
+    }
 
   }
 
