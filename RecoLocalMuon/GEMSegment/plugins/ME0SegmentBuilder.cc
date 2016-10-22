@@ -83,7 +83,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // oc.put(mid, segv.begin(), segv.end());
 
     // Add the segments to the chamber segment collection
-    ME0DetId midch = mid.chamberId();
+    //    ME0DetId midch = mid.chamberId();
     //    ensembleSeg[midch.rawId()].insert(ensembleSeg[midch.rawId()].end(), segv.begin(), segv.end());
     ensembleSeg[mid.rawId()].insert(ensembleSeg[mid.rawId()].end(), segv.begin(), segv.end());
   }
