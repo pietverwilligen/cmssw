@@ -22,7 +22,6 @@
 #include <iostream>
 #include <iomanip>
 
-
 // root include files
 #include "TFile.h"
 #include "TH1F.h"
@@ -258,7 +257,7 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   
   std::cout <<"Number of Segments "<<me0Segment->size()<<std::endl;
   for (auto me0s = me0Segment->begin(); me0s != me0Segment->end(); me0s++) {
-    // The ME0 Ensemble DetId refers to layer = 1   
+    // The ME0 Ensemble DetId refers to layer = 1   and roll = 1
     ME0DetId id = me0s->me0DetId();
     std::cout <<"   Original ME0DetID "<<id<<std::endl;
     auto roll = me0Geom->etaPartition(id); 
@@ -285,8 +284,9 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
       LocalPoint extrPoint(xe,ye,ze); // in segment rest frame
       auto extSegm = rhr->toLocal(roll->toGlobal(extrPoint)); // in layer restframe
       std::cout <<"      ME0 Layer Id "<<rh->me0Id()<<"  error on the local point "<<  erhLEP
-		<<"\n-> Ensemble Rest Frame  RH local  position "<<rhLPSegm<<"  Segment extrapolation "<<extrPoint
+                <<"\n-> Ensemble Rest Frame  RH local  position "<<rhLPSegm<<"  Segment extrapolation "<<extrPoint
 		<<"\n-> Layer Rest Frame  RH local  position "<<rhLP<<"  Segment extrapolation "<<extSegm
+                <<"\n Global Position rechit " << rhGP <<" Segm Extrapolation "<<roll->toGlobal(extrPoint)
 		<<std::endl;
       ME0_Residuals_x->Fill(rhLP.x()-extSegm.x());
       ME0_Residuals_y->Fill(rhLP.y()-extSegm.y());
