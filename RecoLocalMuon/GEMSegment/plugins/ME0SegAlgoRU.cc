@@ -92,7 +92,7 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
       const ME0EtaPartition * thePartition   = (theEnsemble.second).find(rechits[i]->me0Id())->second;
       zmin = (thePartition->toGlobal(rechits[i]->localPosition())).z();
     }
-  } 
+  }
 
   if (std::abs(zmin) > std::abs(zmax)){ 
     reverse(layerIndex.begin(), layerIndex.end()); 
@@ -147,17 +147,16 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
     for (EnsembleHitContainerCIt i1 = ib; i1 != ie; ++i1) {
       if(used[i1-ib])used_rh++;
     }
-
     //change the tresholds if it's time to look for displaced mu segments                                                                                                                                                          
     if(doCollisions && search_disp && int(rechits.size()-used_rh)>2){//check if there are enough recHits left to build a segment from displaced vertices                                                                     
       doCollisions = false;
       windowScale = 1.; // scale factor for cuts   
-      dRMax = 2.0;
+      dRMax = 2.*dRMax;
       dPhiMax = 2*dPhiMax;
       dRIntMax = 2*dRIntMax;
       dPhiIntMax = 2*dPhiIntMax;
       chi2Norm_2D_ = 5*chi2Norm_2D_;
-      chi2_str_ = 100;
+      //      chi2_str_ = 100;
       chi2Max = 2*chi2Max;
     }
 
@@ -171,27 +170,28 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
       float min_chi[120] = {9999}; 
       int common_it = 0; 
       bool first_proto_segment = true; 
+      // the first hit is taken from the back
+      
       for (EnsembleHitContainerCIt i1 = ib; i1 != ie; ++i1) { 
-	bool segok = false; 
-
+	  
 	//skip if rh is used and the layer tat has big rh multiplicity(>25RHs) 
 	if(used[i1-ib] || recHits_per_layer[int(layerIndex[i1-ib])-1]>25 || (n_seg_min == 3 && used3p[i1-ib])) continue; 
 
 	int layer1 = layerIndex[i1-ib];  
 	const ME0RecHit* h1 = *i1; 
-
+	// the second hit from the front
 	for (EnsembleHitContainerCIt i2 = ie-1; i2 != i1; --i2) { 
-
+	  bool segok = false; 
 	  if(used[i2-ib] || recHits_per_layer[int(layerIndex[i2-ib])-1]>25 || (n_seg_min == 3 && used3p[i2-ib])) continue; 
 
 	  int layer2 = layerIndex[i2-ib]; 
 	  if((abs(layer2 - layer1) + 1) < int(n_seg_min)) break;//decrease n_seg_min 
-
-          const ME0RecHit* h2 = *i2; 
-	  if (this->areHitsCloseInEta(h1, h2) && this->areHitsCloseInGlobalPhi(h1, h2)) { 
+          const ME0RecHit* h2 = *i2; 	
+	    if (this->areHitsCloseInEta(h1, h2) && this->areHitsCloseInGlobalPhi(h1, h2)) { 
 	    proto_segment.clear(); 
 	    if (!this->addHit(h1, layer1))continue; 
 	    if (!this->addHit(h2, layer2))continue; 
+
 	    // Can only add hits if already have a segment
 	    if ( sfit_ ) this->tryAddingHitsToSegment(rechits, used, layerIndex, i1, i2);  
 	    segok = this->isSegmentGood(rechits); 
@@ -200,18 +200,20 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
 		this->baseline(n_seg_min); 
 		this->updateParameters();
 	      }
-
-	      if(sfit_->chi2()/sfit_->ndof() > chi2Norm_2D_*chi2D_iadd || proto_segment.size() < n_seg_min)proto_segment.clear(); 
-
+	      if(sfit_->chi2()/sfit_->ndof() > chi2Norm_2D_*chi2D_iadd || proto_segment.size() < n_seg_min) {
+		proto_segment.clear(); 
+	      }
+	      
 	      if (!proto_segment.empty()) { 
 		this->updateParameters(); 
 
 	        //add same-size overcrossed protosegments to the collection 
 		if(first_proto_segment){ 
-
+		  
 		  this->flagHitsAsUsed(rechits, common_used_it[0]); 
 		  min_chi[0] = sfit_->chi2()/sfit_->ndof(); 
 		  best_proto_segment[0] = proto_segment; 
+		  
 		  first_proto_segment = false; 
 		}else{  //for the rest of found proto_segments  
 		  common_it++; 
@@ -257,25 +259,24 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
 	      }//proto seg not empty 
 	    }
 	  }  //   h1 & h2 close 
-	  if (segok)  
-            break; 
+	  if (segok)  {
+	    //            break; 
+	  }
 	}  //  i2 
       }  //  i1 
 
       //add the reconstructed segments 
       for(int j = 0;j < common_it+1; j++){ 
-
+	
 	proto_segment = best_proto_segment[j]; 
 	best_proto_segment[j].clear(); 
-
-	//SKIP empty proto-segments                                                                                                                                                
+	//SKIP empty proto-segments
         if(proto_segment.size() == 0) continue;
-
-	this->updateParameters();                                                                                                                                 
-
+	this->updateParameters();   
+    
 	// Create an actual ME0Segment - retrieve all info from the fit
 	// calculate the timing fron rec hits associated to the TrackingRecHits used 
-	// to fit the segment                                                                                                                                                                       
+	// to fit the segment 
 	float averageTime=0.;
 	for(EnsembleHitContainer::iterator ir=proto_segment.begin(); ir<proto_segment.end(); ++ir ) {
 	  averageTime += (*ir)->tof();
@@ -309,7 +310,7 @@ std::vector<ME0Segment> ME0SegAlgoRU::buildSegments(const EnsembleHitContainer& 
       //reset params and flags for the next ensemble                                                                                                                           
       search_disp = false;
       doCollisions = true;
-      dRMax = 2.0;
+      dRMax = dRMax/2.0;
       dPhiMax = dPhiMax/2;
       dRIntMax = dRIntMax/2;
       dPhiIntMax = dPhiIntMax/2;
@@ -400,6 +401,7 @@ void ME0SegAlgoRU::tryAddingHitsToSegment(const EnsembleHitContainer& rechits,
 
   EnsembleHitContainerCIt ib = rechits.begin(); 
   EnsembleHitContainerCIt ie = rechits.end(); 
+  
   for (EnsembleHitContainerCIt i = ib; i != ie; ++i) { 
     if(layerIndex[i1-ib]<layerIndex[i2-ib]){ 
       if (layerIndex[i-ib] <= layerIndex[i1-ib] || layerIndex[i-ib] >= layerIndex[i2-ib] || i  == i1 || i == i2 || used[i-ib]){  
@@ -416,6 +418,7 @@ void ME0SegAlgoRU::tryAddingHitsToSegment(const EnsembleHitContainer& rechits,
     int layer = layerIndex[i-ib]; 
     const ME0RecHit* h = *i; 
     if (this->isHitNearSegment(h)) {
+
       // Don't consider alternate hits on layers holding the two starting points 
       if (this->hasHitOnLayer(layer)) { 
 	if (proto_segment.size() <= 2) continue; 
@@ -423,7 +426,8 @@ void ME0SegAlgoRU::tryAddingHitsToSegment(const EnsembleHitContainer& rechits,
       }  
       else{ 
 	this->increaseProtoSegment(h, layer, chi2D_iadd);  
-      } 
+      }
+      
     }   // h & seg close 
   }   // i 
 } 
@@ -471,7 +475,6 @@ bool ME0SegAlgoRU::areHitsCloseInGlobalPhi(const ME0RecHit* h1, const ME0RecHit*
   GlobalPoint gp2 = part2->toGlobal(h2->localPosition());	 
 
   float dphi12 = deltaPhi(gp1.barePhi(),gp2.barePhi());
-
   return fabs(dphi12) < dPhiMax; 
 } 
 
@@ -493,7 +496,7 @@ bool ME0SegAlgoRU::isHitNearSegment(const ME0RecHit* h) const {
 
   const ME0EtaPartition* l = theEnsemble.second.find(h->me0Id())->second;
   GlobalPoint hp = l->toGlobal(h->localPosition()); 
-
+  
   float hphi = hp.phi();          // in (-pi, +pi] 
   if (hphi < 0.) 
     hphi += 2.*M_PI;            // into range [0, 2pi) 
@@ -513,7 +516,7 @@ bool ME0SegAlgoRU::isHitNearSegment(const ME0RecHit* h) const {
 
   float r_interpolated = this->fit_r_phi(r_glob,layer); 
   float dr = fabs(r_interpolated - R); 
-
+  
   return (fabs(phidif) <  dPhiIntMax && fabs(dr) < dRIntMax);
 } 
 
@@ -529,6 +532,7 @@ float ME0SegAlgoRU::phiAtZ(float z) const {
 
   float x = gp.x() + (gv.x()/gv.z())*(z - gp.z());
   float y = gp.y() + (gv.y()/gv.z())*(z - gp.z());
+
   float phi = atan2(y, x);
   if (phi < 0.f ) phi += 2. * M_PI;
 
@@ -574,7 +578,7 @@ bool ME0SegAlgoRU::addHit(const ME0RecHit* aHit, int layer) {
   // Return false if there is already a hit on the same layer, or insert failed.
 
   EnsembleHitContainer::const_iterator it;
-
+  
   for(it = proto_segment.begin(); it != proto_segment.end(); it++)
     if (((*it)->me0Id().layer() == layer) && (aHit != (*it)))
       return false;
@@ -627,7 +631,6 @@ void ME0SegAlgoRU::baseline(int n_seg_min){
 
   int nhits      = proto_segment.size(); 
   EnsembleHitContainer::const_iterator iRH_worst; 
-
   //initialise vectors for strip position and error within strip
   SVector6 sp; 
   SVector6 se;  
@@ -637,11 +640,10 @@ void ME0SegAlgoRU::baseline(int n_seg_min){
   EnsembleHitContainer buffer; 
   buffer.clear(); 
   buffer.reserve(init_size);
-  
   while (buffer.size()< init_size){ 
     EnsembleHitContainer::iterator min; 
     int min_layer = 99; 
-    for(EnsembleHitContainer::iterator k = proto_segment.begin(); k != proto_segment.end(); k++){       
+    for(EnsembleHitContainer::iterator k = proto_segment.begin(); k != proto_segment.end(); k++){             
       const ME0RecHit* iRHk = *k;  
       ME0DetId idRHk = iRHk->me0Id(); 
       int kLayer   = idRHk.layer(); 
@@ -651,7 +653,7 @@ void ME0SegAlgoRU::baseline(int n_seg_min){
       } 
     } 
     buffer.push_back(*min); 
-    proto_segment.erase(min); 
+    proto_segment.erase(min);
   }//while 
   proto_segment.clear();  
 
@@ -670,8 +672,10 @@ void ME0SegAlgoRU::baseline(int n_seg_min){
     GlobalPoint gp = thePartition->toGlobal(iRHp->localPosition());
     float pphi = gp.phi();
     float prad = gp.perp();
-    sp(kLayer) =  pphi*prad -phifirst;      
-    se(kLayer) = iRHp->localPositionError().xx();      
+    if (first) sp(kLayer) = 0;
+    else
+      sp(kLayer) =  pphi*prad -phifirst;      
+    se(kLayer) = sqrt(iRHp->localPositionError().xx());
     if (first){
       phifirst = pphi*prad;
       first = false;
@@ -872,17 +876,18 @@ bool ME0SegAlgoRU::replaceHit(const ME0RecHit* h, int layer) {
   // replace a hit from a layer  
   EnsembleHitContainer::const_iterator it; 
   for (it = proto_segment.begin(); it != proto_segment.end();) { 
-    if ((*it)->me0Id().layer() == layer) 
+    if ((*it)->me0Id().layer() == layer) {
       it = proto_segment.erase(it); 
-    else 
+    } else {
       ++it;    
+    }
   } 
-
+  
   return addHit(h, layer);				     
 } 
 
 void ME0SegAlgoRU::compareProtoSegment(const ME0RecHit* h, int layer) { 
-   // Copy the input MuonSegFit                                                                                                                                                       
+   // Copy the input MuonSegFit                                                                                                                                                      
   std::unique_ptr<MuonSegFit> oldfit;// =  new MuonSegFit( *sfit_ );                                                                                                                  
 
   MuonSegFit::MuonRecHitContainer muonRecHits;
@@ -898,12 +903,12 @@ void ME0SegAlgoRU::compareProtoSegment(const ME0RecHit* h, int layer) {
   }
   oldfit.reset(new MuonSegFit( muonRecHits ));
   oldfit->fit();
-
+  auto oldproto = proto_segment;
    // May create a new fit
   bool ok = this->replaceHit(h, layer);
-
   if ( ( sfit_->chi2() >= oldfit->chi2() ) || !ok ) {
     sfit_ = std::move(oldfit); // reset to the original input fit 
+    proto_segment = oldproto;
   }
 } 
 
@@ -921,13 +926,15 @@ void ME0SegAlgoRU::increaseProtoSegment(const ME0RecHit* h, int layer, int chi2_
     muonRecHits.push_back(trkRecHit);
   }
 
-  // Creates a new fit                                                                                                                                                              
+  // Creates a new fit
   std::unique_ptr<MuonSegFit> oldfit;
   oldfit.reset(new MuonSegFit( muonRecHits ));
-
+  oldfit->fit();
+  auto oldproto = proto_segment;
   bool ok = this->addHit(h, layer);
   //@@ TEST ON ndof<=0 IS JUST TO ACCEPT nhits=2 CASE??
   if ( !ok || ( (sfit_->ndof() > 0) && (sfit_->chi2()/sfit_->ndof() >= chi2Max)) ) {
     sfit_ = std::move(oldfit);
+    proto_segment = oldproto;
   }
 }
