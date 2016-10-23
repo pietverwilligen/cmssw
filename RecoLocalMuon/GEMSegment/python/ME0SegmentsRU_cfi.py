@@ -2,8 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 RU_ME0 = cms.PSet(
     doCollisions = cms.bool(True),
-    chi2Norm_2D_ = cms.double(35),
-    chi2_str = cms.double(50.0),
+    chi2Norm_2D_ = cms.double(100),
+    chi2_str = cms.double(100.0),
     chi2Max = cms.double(100.0),
     dPhiIntMax = cms.double(0.1),
     dPhiMax = cms.double(0.1),
