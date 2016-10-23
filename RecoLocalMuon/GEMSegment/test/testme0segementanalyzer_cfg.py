@@ -11,8 +11,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        # 'file:./out_rec_me0.test2.root'
-        'file:/afs/cern.ch/work/m/mmaggi/ME0/SEGMENTS/MULTI/CMSSW_8_1_0_pre13/src/McProd/perfect_10Pt_me0segment.root'
+        'file:./out_rec_me0.test2.root'
     )
 )
 
