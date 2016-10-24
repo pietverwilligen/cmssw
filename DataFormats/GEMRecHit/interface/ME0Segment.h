@@ -67,9 +67,9 @@ class ME0Segment final : public RecSegment {
   const std::vector<ME0RecHit>& specificRecHits() const { return theME0RecHits; }
 
   int nRecHits() const { return theME0RecHits.size(); }        
-
-  ME0DetId me0DetId() const { return  geographicalId(); }
-
+  
+  ME0DetId me0DetId() const;
+  
   float time() const    { return theTimeValue; }
   float timeErr() const { return theTimeUncrt; }
     
