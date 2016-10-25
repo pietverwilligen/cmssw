@@ -47,7 +47,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // At this point there is only one roll, so nothing to be worried about ...
     // reference fram is layer 1 and eta partition 1.  this will not work if no eta partition 
     // are present...
-    ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),1);
+    ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());    
   }
@@ -83,9 +83,10 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // oc.put(mid, segv.begin(), segv.end());
 
     // Add the segments to the chamber segment collection
-    //    ME0DetId midch = mid.chamberId();
-    //    ensembleSeg[midch.rawId()].insert(ensembleSeg[midch.rawId()].end(), segv.begin(), segv.end());
-    ensembleSeg[mid.rawId()].insert(ensembleSeg[mid.rawId()].end(), segv.begin(), segv.end());
+    ME0DetId midch = mid.chamberId();
+    ensembleSeg[midch.rawId()].insert(ensembleSeg[midch.rawId()].end(), segv.begin(), segv.end());
+    // Marcello prefers to add segments to the roll id ... Piet prefers to add segments to chamber id
+    // ensembleSeg[mid.rawId()].insert(ensembleSeg[mid.rawId()].end(), segv.begin(), segv.end());
   }
 
   for(auto segIt=ensembleSeg.begin(); segIt != ensembleSeg.end(); ++segIt) {
