@@ -50,6 +50,14 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());    
+    // cover the case in which a muon passes through etapartition N for layers 1 .. X 
+    // and through eta partition N-1 for layers X+1 .. 6
+    // therefore check whether Layer > 1 and EtaPart < MAX
+    // and put the rechit also in the ensembleRH for the EtaPart+1
+    if(it2->me0Id().layer()>1 && it2->me0Id().roll()<ME0DetId::maxRollId) {
+      ME0DetId id2(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll()+1);
+      ensembleRH[id2.rawId()].push_back(it2->clone());
+    }
   }
 
   std::map<uint32_t, std::vector<ME0Segment> > ensembleSeg;  // collect here all segments from the same chamber
