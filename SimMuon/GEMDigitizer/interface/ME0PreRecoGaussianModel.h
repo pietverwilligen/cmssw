@@ -24,7 +24,7 @@ public:
   ~ME0PreRecoGaussianModel();
 
   void simulateSignal(const ME0EtaPartition*, const edm::PSimHitContainer&, CLHEP::HepRandomEngine*) override;
-  void simulateNoise(const ME0EtaPartition*, CLHEP::HepRandomEngine*) override;
+  void simulateNoise(const ME0EtaPartition*, double, CLHEP::HepRandomEngine*) override;
   double correctSigmaU(const ME0EtaPartition*, double);
   void setup() {}
 

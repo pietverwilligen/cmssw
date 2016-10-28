@@ -1,3 +1,6 @@
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupMixingContent.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
 #include "SimMuon/GEMDigitizer/interface/ME0PreRecoGaussianModel.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartitionSpecs.h"
 #include "Geometry/CommonTopologies/interface/TrapezoidalStripTopology.h"
@@ -92,7 +95,7 @@ for (const auto & hit: simHits)
 }
 }
 
-void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::HepRandomEngine* engine)
+void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll, double instLumi, CLHEP::HepRandomEngine* engine)
 {
   double trArea(0.0);
   const ME0DetId me0Id(roll->id());
@@ -165,7 +168,8 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::
       for(int j=0; j<7; ++j) { averageElectronRatePerRoll += eleBkg[j]*yy_helper; yy_helper *= yy_glob; }
 
       // Scale up/down for desired instantaneous lumi (reference is 5E34, double from config is in units of 1E34)      
-      averageElectronRatePerRoll *= instLumi_*1.0/5;
+      // averageElectronRatePerRoll *= instLumi_*1.0/5;
+      averageElectronRatePerRoll *= instLumi*1.0/5;
 
       // Rate [Hz/cm^2] * Nbx * 25*10^-9 [s] * Area [cm] = # hits in this roll in this bx
       const double averageElecRate(averageElectronRatePerRoll * (maxBunch_-minBunch_+1)*(bxwidth*1.0e-9) * areaIt); 
@@ -216,7 +220,8 @@ void ME0PreRecoGaussianModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::
       for(int j=0; j<7; ++j) { averageNeutralRatePerRoll += neuBkg[j]*yy_helper; yy_helper *= yy_glob; }
 
       // Scale up/down for desired instantaneous lumi (reference is 5E34, double from config is in units of 1E34)      
-      averageNeutralRatePerRoll *= instLumi_*1.0/5;
+      // averageNeutralRatePerRoll *= instLumi_*1.0/5;
+      averageNeutralRatePerRoll *= instLumi*1.0/5;
       
       // Rate [Hz/cm^2] * Nbx * 25*10^-9 [s] * Area [cm] = # hits in this roll
       const double averageNeutrRate(averageNeutralRatePerRoll * (maxBunch_-minBunch_+1)*(bxwidth*1.0e-9) * areaIt);
@@ -270,3 +275,51 @@ double ME0PreRecoGaussianModel::correctSigmaU(const ME0EtaPartition* roll, doubl
   double sigma_u_new = Rx/Rmax*sigma_u;
   return sigma_u_new;
 }
+
+/*
+void ME0PreRecoGaussianModel::calculateInstlumiFactor(PileupMixingContent* puInfo){
+  // Instlumi scalefactor calculating for neutron induced background
+
+  if (puInfo) {
+    const std::vector<int> bunchCrossing = puInfo->getMix_bunchCrossing();
+    const std::vector<float> TrueInteractionList = puInfo->getMix_TrueInteractions();      
+    //const int bunchSpacing = puInfo->getMix_bunchSpacing();
+
+    int pui = 0, p = 0;
+    std::vector<int>::const_iterator pu;
+    std::vector<int>::const_iterator pu0 = bunchCrossing.end();
+    
+    for (pu=bunchCrossing.begin(); pu!=bunchCrossing.end(); ++pu) {
+      std::cout<<"PU Info :: In Loop and bx = "<<pu<<std::endl;
+      if (*pu==0) {
+	pu0 = pu;
+	p = pui;
+	std::cout<<"PU Info :: In Loop and *pu==0 ==> pu0 points now to pu (iterators) pu0 = "<<*pu0<<" and p = pui = "<<p<<std::endl;
+      }
+      std::cout<<"PU Info :: In Loop :: iterator pu points to "<<*pu<<" counter pui = "<<pui<<" number of interactions = "<<TrueInteractionList.at(pui)<<std::endl;
+      pui++;
+    }
+    if (pu0!=bunchCrossing.end()) {
+      double instlumi1 = TrueInteractionList.at(p)*221.95;
+      double instlumi2 = TrueInteractionList.at(p)*364;
+      double instlumi3 = TrueInteractionList.at(p)*246.4;
+      std::cout<<"PU Info :: Out Loop :: Number Of Interactions for pu0 = "<<TrueInteractionList.at(p)<<" => Inst Lumi (scale factor 221.95) = "<<instlumi1<<" (scale factor 364) "<<instlumi2<<" (scale factor 246.4) "<<instlumi3<<std::endl;
+	// for (size_t i=0, n = pixelEfficiencies_.thePUEfficiency.size(); i<n; i++) {
+	// double instlumi = TrueInteractionList.at(p)*pixelEfficiencies_.theInstLumiScaleFactor;
+	// double instlumi_pow=1.;
+	// pixelEfficiencies_.pu_scale[i] = 0;
+	// for  (size_t j=0; j<pixelEfficiencies_.thePUEfficiency[i].size(); j++){
+	//   pixelEfficiencies_.pu_scale[i]+=instlumi_pow*pixelEfficiencies_.thePUEfficiency[i][j];
+	//   instlumi_pow*=instlumi;
+	// }
+	// }
+    }
+  } 
+  else {
+    // for (int i=0, n = pixelEfficiencies_.thePUEfficiency.size(); i<n; i++) {
+    //   pixelEfficiencies_.pu_scale[i] = 1.;
+    // }
+    std::cout<<"No PU Info ... what to do now?"<<std::endl;
+  }
+}
+*/

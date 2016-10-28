@@ -33,7 +33,7 @@ ME0PreRecoNoSmearModel::simulateSignal(const ME0EtaPartition* roll,
 }
 
 void 
-ME0PreRecoNoSmearModel::simulateNoise(const ME0EtaPartition* roll, CLHEP::HepRandomEngine* engine)
+ME0PreRecoNoSmearModel::simulateNoise(const ME0EtaPartition* roll, double instLumi, CLHEP::HepRandomEngine* engine)
 {
 }
 

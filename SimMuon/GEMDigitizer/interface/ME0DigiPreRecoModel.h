@@ -37,7 +37,7 @@ public:
 
   virtual void simulateSignal(const ME0EtaPartition*, const edm::PSimHitContainer&, CLHEP::HepRandomEngine* engine) = 0;
 
-  virtual void simulateNoise(const ME0EtaPartition*, CLHEP::HepRandomEngine* engine) = 0;
+  virtual void simulateNoise(const ME0EtaPartition*, double, CLHEP::HepRandomEngine* engine) = 0;
   
   //  virtual std::vector<std::pair<int,int> > 
   //   simulateClustering(const ME0EtaPartition*, const PSimHit*, const int) = 0;
