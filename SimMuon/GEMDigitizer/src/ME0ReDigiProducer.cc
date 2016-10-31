@@ -22,6 +22,8 @@
 ME0ReDigiProducer::ME0ReDigiProducer(const edm::ParameterSet& ps)
 {
   produces<ME0DigiPreRecoCollection>();
+  produces<ME0DigiMap>("OriginalME0DetId");
+  produces<ME0DigiMap>("OriginalME0DigiPreReco");
 
   edm::Service<edm::RandomNumberGenerator> rng;
   if (!rng.isAvailable()){
@@ -89,17 +91,27 @@ void ME0ReDigiProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
   e.getByToken(token_, input_digis);
 
   std::unique_ptr<ME0DigiPreRecoCollection> output_digis(new ME0DigiPreRecoCollection());
+  std::unique_ptr<ME0DigiMap> output_detidmap(new ME0DigiMap());
+  std::unique_ptr<ME0DigiMap> output_digimap(new ME0DigiMap());
 
   // build the clusters
-  buildDigis(*(input_digis.product()), *output_digis, engine);
+  buildDigis(*(input_digis.product()),
+	     *output_digis,
+	     *output_detidmap,
+	     *output_digimap,
+	     engine);
 
   // store them in the event
   e.put(std::move(output_digis));
+  e.put(std::move(output_detidmap), "OriginalME0DetId");
+  e.put(std::move(output_digimap),  "OriginalME0DigiPreReco");
 }
 
 
 void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
                                    ME0DigiPreRecoCollection & output_digis,
+				   ME0DigiMap & output_detidmap,
+				   ME0DigiMap & output_digimap,
                                    CLHEP::HepRandomEngine* engine)
 {
   /*
@@ -118,6 +130,7 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
     - use gaussian smear with sigma_eff=sqrt(sigma_desired^2-300^2)
   */
 
+  int iDigi = -1;
   for(auto &roll: geometry_->etaPartitions()){
     const ME0DetId detId(roll->id());
     //const uint32_t rawId(detId.rawId());
@@ -126,6 +139,7 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       const ME0DigiPreReco me0Digi = *d;
       edm::LogVerbatim("ME0ReDigiProducer")
         << "Check detId " << detId << " digi " << me0Digi << std::endl;
+      iDigi++;
 
       // selection
       if (reDigitizeOnlyMuons_ and fabs(me0Digi.pdgid()) != 13) continue;
@@ -137,6 +151,10 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
 
       edm::LogVerbatim("ME0ReDigiProducer")
         << "\tPassed selection" << std::endl;
+
+      // store index of previous detid and digi
+      output_detidmap.push_back(detId.rawId());
+      output_digimap.push_back(iDigi);
 
       // time resolution
       float newTof(me0Digi.tof());
