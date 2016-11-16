@@ -236,8 +236,9 @@ XMLIdealGeometryESSource = cms.ESSource("XMLIdealGeometryESSource",
         'Geometry/MuonCommonData/data/v2/rpcf.xml',
         'Geometry/MuonCommonData/data/v2/csc.xml',
         'Geometry/MuonCommonData/data/v2/mfshield.xml',
-        'Geometry/MuonCommonData/data/PhaseII/gemf.xml',
-        'Geometry/MuonCommonData/data/PhaseII/gem11.xml',
+        'Geometry/MuonCommonData/data/PhaseII/gemf.xml',  
+        'Geometry/MuonCommonData/data/PhaseII/gem11.xml',            # 2017 slice test
+        # 'Geometry/MuonCommonData/data/PhaseII/TP_BaseLine/gem11.xml',  # 2019 full ge11
         'Geometry/ForwardCommonData/data/forward.xml',
         'Geometry/ForwardCommonData/data/v2/forwardshield.xml',
         'Geometry/ForwardCommonData/data/brmrotations.xml',
@@ -255,7 +256,8 @@ XMLIdealGeometryESSource = cms.ESSource("XMLIdealGeometryESSource",
         'Geometry/ForwardCommonData/data/zdc.xml',
         'Geometry/ForwardCommonData/data/zdclumi.xml',
         'Geometry/ForwardCommonData/data/cmszdc.xml')+cms.vstring(
-        'Geometry/MuonCommonData/data/v6/muonGemNumbering17.xml',
+        'Geometry/MuonCommonData/data/v6/muonGemNumbering17.xml', # 2017 slice test
+        # 'Geometry/MuonCommonData/data/v6/muonGemNumbering.xml',     # 2019 full ge11
         'Geometry/TrackerCommonData/data/PhaseI/trackerStructureTopology.xml',
         'Geometry/TrackerSimData/data/PhaseI/trackersens.xml',
         'Geometry/TrackerRecoData/data/PhaseI/trackerRecoMaterial.xml',
@@ -268,9 +270,11 @@ XMLIdealGeometryESSource = cms.ESSource("XMLIdealGeometryESSource",
         'Geometry/MuonSimData/data/v2/muonSens.xml',
         'Geometry/DTGeometryBuilder/data/dtSpecsFilter.xml',
         'Geometry/CSCGeometryBuilder/data/cscSpecsFilter.xml',
+        'Geometry/GEMGeometryBuilder/data/v4/GEMSpecsFilter.xml',   # this file was missing
+        # 'Geometry/GEMGeometryBuilder/data/GEMSpecsFilter.xml',   # this file was missing
         'Geometry/CSCGeometryBuilder/data/cscSpecs.xml',
         'Geometry/RPCGeometryBuilder/data/RPCSpecs.xml',
-        'Geometry/GEMGeometryBuilder/data/v4/GEMSpecs.xml',
+        'Geometry/GEMGeometryBuilder/data/v4/GEMSpecs.xml',  
         'Geometry/ForwardCommonData/data/brmsens.xml',
         'Geometry/ForwardSimData/data/castorsens.xml',
         'Geometry/ForwardSimData/data/zdcsens.xml',
