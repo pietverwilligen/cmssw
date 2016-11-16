@@ -2,11 +2,17 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("Demo")
 
-process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
+# process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2017Muon_cff')
+process.load('Configuration.Geometry.GeometryExtended2017MuonReco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2019_cff')
+# process.load('Configuration.Geometry.GeometryExtended2019Reco_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+# process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2017', '')
+# process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1)
@@ -38,14 +44,14 @@ process.p = cms.Path(process.test)
 ### before issuing the scram command above                     
 ###############################################################
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-# process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
-# process.MessageLogger.categories.append("GEMNumberingScheme")
+process.MessageLogger.categories.append("GEMGeometryBuilderFromDDD")
+process.MessageLogger.categories.append("GEMNumberingScheme")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
 process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
     FwkReport = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    # GEMGeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
-    # GEMNumberingScheme            = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    GEMGeometryBuilderFromDDD   = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
+    GEMNumberingScheme            = cms.untracked.PSet( limit = cms.untracked.int32(-1) ),
 )                                                                                                                                                                 
