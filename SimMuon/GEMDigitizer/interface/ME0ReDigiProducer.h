@@ -66,6 +66,7 @@ private:
   double instLumi_;
   std::vector<double> centralTOF_;
   int nPartitions_;
+  bool mergeReDigis_;
 };
 
 #endif

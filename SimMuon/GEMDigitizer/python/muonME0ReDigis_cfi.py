@@ -14,10 +14,11 @@ simMuonME0ReDigis = cms.EDProducer("ME0ReDigiProducer",
     oldYResolution = cms.double(0.00),
     newXResolution = cms.double(0.03),
     newYResolution = cms.double(2.50),
-    discretizeX = cms.bool(False),
+    discretizeX = cms.bool(True),
     discretizeY = cms.bool(True),
     verbose = cms.bool(False),
     reDigitizeOnlyMuons = cms.bool(False),
     reDigitizeNeutronBkg = cms.bool(True),
     instLumi = cms.double(10.0), # in units of 1E34 cm^-2 s^-1
+    mergeReDigis = cms.bool(True),
 )
