@@ -274,6 +274,9 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       }
       oldXPosition = newX;
 
+      // keep digis when time = -25ns, 0ns, 25ns. This is a quick-and-dirty way to get the Dubna algorithm downstream to work at PU200
+      if (std::abs(newTime) > 25) continue;
+
       // make a new ME0DetId
       ME0DigiPreReco out_digi(newX, newY, targetXResolution, targetYResolution, me0Digi.corr(), newTime, me0Digi.pdgid(), me0Digi.prompt());
       output_digis.insertDigi(newPart->id(), out_digi);
