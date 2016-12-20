@@ -3,7 +3,7 @@
 #include "DataFormats/GEMRecHit/interface/ME0RecHit.h"
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
-//#include "Geometry/GEMGeometry/interface/ME0Chamber.h"
+#include "Geometry/GEMGeometry/interface/ME0Chamber.h"
 #include "RecoLocalMuon/GEMSegment/plugins/ME0SegmentAlgorithmBase.h"
 #include "RecoLocalMuon/GEMSegment/plugins/ME0SegmentBuilderPluginFactory.h"
 	 
@@ -45,17 +45,25 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // At this point there is only one roll, so nothing to be worried about ...
     // [At a later stage one will have to mask also the rolls 
     // if one wants to recover segments that are at the border of a roll]
-    ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
+
+    // ME0 DetId (region, layer, chamber, roll)
+    // ---> First Eta Partition in Layer 1 as Reference 
+    // ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
+    // ---> Chamber as Reference
+    ME0DetId id(it2->me0Id().region(),0,it2->me0Id().chamber(),0);
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());
+
     // cover the case in which a muon passes through etapartition N for layers 1 .. X
     // and through eta partition N-1 for layers X+1 .. NLAYERS
     // therefore check whether Layer > 1 and EtaPart < MAX
     // and put the rechit also in the ensembleRH for the EtaPart+1
+    /*
     if(it2->me0Id().layer()>1 && it2->me0Id().roll()<ME0DetId::maxRollId) {
       ME0DetId id2(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll()+1);
       ensembleRH[id2.rawId()].push_back(it2->clone());
     }
+    */
   }
 
   std::map<uint32_t, std::vector<ME0Segment> > ensembleSeg;  // collect here all segments from each reference first layer roll
@@ -66,12 +74,15 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     std::map<uint32_t,const ME0EtaPartition* > ens;
     
     // all detIds have been assigned to the reference detId of layer 1
-    const ME0EtaPartition* firstlayer  = geom_->etaPartition(enIt->first);
+    // const ME0EtaPartition* firstlayer  = geom_->etaPartition(enIt->first);
+    // all detIds have been assigned to the reference detId of the chamber
+    const ME0Chamber* firstlayer  = geom_->chamber(enIt->first);
     for(auto rechit = enIt->second.begin(); rechit != enIt->second.end(); ++rechit) {
       me0RecHits.push_back(*rechit);
       ens[(*rechit)->me0Id()]=geom_->etaPartition((*rechit)->me0Id());
     }    
-    ME0SegmentAlgorithmBase::ME0Ensemble ensemble(std::pair<const ME0EtaPartition*, std::map<uint32_t,const ME0EtaPartition*> >(firstlayer,ens));
+    // ME0SegmentAlgorithmBase::ME0Ensemble ensemble(std::pair<const ME0EtaPartition*, std::map<uint32_t,const ME0EtaPartition*> >(firstlayer,ens));
+    ME0SegmentAlgorithmBase::ME0Ensemble ensemble(std::pair<const ME0Chamber*, std::map<uint32_t,const ME0EtaPartition*> >(firstlayer,ens));
     
     ME0DetId mid(enIt->first);
     #ifdef EDM_ML_DEBUG
@@ -85,12 +96,6 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     LogDebug("ME0SegmentBuilder") << "found " << segv.size() << " segments in etapart " << mid;
     #endif
     
-    // Add the segments to master collection
-    // oc.put(mid, segv.begin(), segv.end());
-
-    // Add the segments to the chamber segment collection
-    // segment is defined from first partition of first layer    
-    //    ME0DetId midch = mid.chamberId();
     std::cout <<" Inserting Segment in "<<mid<<std::endl;
     ensembleSeg[mid.rawId()].insert(ensembleSeg[mid.rawId()].end(), segv.begin(), segv.end());
   }
