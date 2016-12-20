@@ -125,8 +125,9 @@ class TestME0SegmentAnalyzer : public edm::EDAnalyzer {
 TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
 
 {
-   //now do what ever initialization is needed
-  ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments","","ME0RERECO"));
+  // now do what ever initialization is needed
+  // ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments","","ME0RERECO"));
+  ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments"));
   ME0RecHit_Token  = consumes<ME0RecHitCollection>(edm::InputTag("me0RecHits"));
   ME0Digi_Token  = consumes<ME0DigiPreRecoCollection>(edm::InputTag("simMuonME0Digis"));
   //  ME0SimHit_Token = 
@@ -138,40 +139,40 @@ TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
   ME0_segdR   = std::unique_ptr<TH1F>(new TH1F("segmentdR","segmentdR",50,-10.,10.)); 
   ME0_segdPhi = std::unique_ptr<TH1F>(new TH1F("segmentdphi","segmentdphi",50,-0.1,0.1)); 
   ME0_fitchi2 = std::unique_ptr<TH1F>(new TH1F("chi2Vsndf","chi2Vsndf",50,0.,100.));
-  ME0_rhmult  = std::unique_ptr<TH1F>(new TH1F("rhmulti","rhmulti",11,-0.5,10.5)); 
-  ME0_rhmultb = std::unique_ptr<TH1F>(new TH1F("rhmultib","rhmultib",11,-0.5,10.5)); 
-  ME0_sgmult  = std::unique_ptr<TH1F>(new TH1F("sgmult","sgmult",11,-0.5,10.5));  
+  ME0_rhmult  = std::unique_ptr<TH1F>(new TH1F("rhmulti","rhmulti",16,-0.5,15.5)); 
+  ME0_rhmultb = std::unique_ptr<TH1F>(new TH1F("rhmultib","rhmultib",16,-0.5,15.5)); 
+  ME0_sgmult  = std::unique_ptr<TH1F>(new TH1F("sgmult","sgmult",501,-0.5,500.5));  
   ME0_rhtime  = std::unique_ptr<TH1F>(new TH1F("rhtime","rhtime",100,-125.,125.));  
   ME0_sgtime  = std::unique_ptr<TH1F>(new TH1F("sgtime","sgtime",100,-125.,125.));  
   ME0_sgterr  = std::unique_ptr<TH1F>(new TH1F("sgterr","sgterr",100,0.,10.));  
-  ME0_Residuals_x    = std::unique_ptr<TH1F>(new TH1F("xME0Res","xME0Res",100,-0.5,0.5));
-  ME0_Residuals_l1_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l1","xME0Res_l1",100,-0.5,0.5));
-  ME0_Residuals_l2_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l2","xME0Res_l2",100,-0.5,0.5));
-  ME0_Residuals_l3_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l3","xME0Res_l3",100,-0.5,0.5));
-  ME0_Residuals_l4_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l4","xME0Res_l4",100,-0.5,0.5));
-  ME0_Residuals_l5_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l5","xME0Res_l5",100,-0.5,0.5));
-  ME0_Residuals_l6_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l6","xME0Res_l6",100,-0.5,0.5));
-  ME0_Pull_x    = std::unique_ptr<TH1F>(new TH1F("xME0Pull","xME0Pull",100,-5.,5.));
-  ME0_Pull_l1_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l1","xME0Pull_l1",100,-5.,5.));
-  ME0_Pull_l2_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l2","xME0Pull_l2",100,-5.,5.));
-  ME0_Pull_l3_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l3","xME0Pull_l3",100,-5.,5.));
-  ME0_Pull_l4_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l4","xME0Pull_l4",100,-5.,5.));
-  ME0_Pull_l5_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l5","xME0Pull_l5",100,-5.,5.));
-  ME0_Pull_l6_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l6","xME0Pull_l6",100,-5.,5.));
-  ME0_Residuals_y    = std::unique_ptr<TH1F>(new TH1F("yME0Res","yME0Res",100,-5.,5.));
-  ME0_Residuals_l1_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l1","yME0Res_l1",100,-5.,5.));
-  ME0_Residuals_l2_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l2","yME0Res_l2",100,-5.,5.));
-  ME0_Residuals_l3_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l3","yME0Res_l3",100,-5.,5.));
-  ME0_Residuals_l4_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l4","yME0Res_l4",100,-5.,5.));
-  ME0_Residuals_l5_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l5","yME0Res_l5",100,-5.,5.));
-  ME0_Residuals_l6_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l6","yME0Res_l6",100,-5.,5.));
-  ME0_Pull_y    = std::unique_ptr<TH1F>(new TH1F("yME0Pull","yME0Pull",100,-5.,5.));
-  ME0_Pull_l1_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l1","yME0Pull_l1",100,-5.,5.));
-  ME0_Pull_l2_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l2","yME0Pull_l2",100,-5.,5.));
-  ME0_Pull_l3_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l3","yME0Pull_l3",100,-5.,5.));
-  ME0_Pull_l4_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l4","yME0Pull_l4",100,-5.,5.));
-  ME0_Pull_l5_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l5","yME0Pull_l5",100,-5.,5.));
-  ME0_Pull_l6_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l6","yME0Pull_l6",100,-5.,5.));
+  ME0_Residuals_x    = std::unique_ptr<TH1F>(new TH1F("xME0Res","xME0Res",500,-0.5,0.5));
+  ME0_Residuals_l1_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l1","xME0Res_l1",500,-0.5,0.5));
+  ME0_Residuals_l2_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l2","xME0Res_l2",500,-0.5,0.5));
+  ME0_Residuals_l3_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l3","xME0Res_l3",500,-0.5,0.5));
+  ME0_Residuals_l4_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l4","xME0Res_l4",500,-0.5,0.5));
+  ME0_Residuals_l5_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l5","xME0Res_l5",500,-0.5,0.5));
+  ME0_Residuals_l6_x = std::unique_ptr<TH1F>(new TH1F("xME0Res_l6","xME0Res_l6",500,-0.5,0.5));
+  ME0_Pull_x    = std::unique_ptr<TH1F>(new TH1F("xME0Pull","xME0Pull",500,-5.,5.));
+  ME0_Pull_l1_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l1","xME0Pull_l1",500,-5.,5.));
+  ME0_Pull_l2_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l2","xME0Pull_l2",500,-5.,5.));
+  ME0_Pull_l3_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l3","xME0Pull_l3",500,-5.,5.));
+  ME0_Pull_l4_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l4","xME0Pull_l4",500,-5.,5.));
+  ME0_Pull_l5_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l5","xME0Pull_l5",500,-5.,5.));
+  ME0_Pull_l6_x = std::unique_ptr<TH1F>(new TH1F("xME0Pull_l6","xME0Pull_l6",500,-5.,5.));
+  ME0_Residuals_y    = std::unique_ptr<TH1F>(new TH1F("yME0Res","yME0Res",500,-5.,5.));
+  ME0_Residuals_l1_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l1","yME0Res_l1",500,-5.,5.));
+  ME0_Residuals_l2_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l2","yME0Res_l2",500,-5.,5.));
+  ME0_Residuals_l3_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l3","yME0Res_l3",500,-5.,5.));
+  ME0_Residuals_l4_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l4","yME0Res_l4",500,-5.,5.));
+  ME0_Residuals_l5_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l5","yME0Res_l5",500,-5.,5.));
+  ME0_Residuals_l6_y = std::unique_ptr<TH1F>(new TH1F("yME0Res_l6","yME0Res_l6",500,-5.,5.));
+  ME0_Pull_y    = std::unique_ptr<TH1F>(new TH1F("yME0Pull","yME0Pull",500,-5.,5.));
+  ME0_Pull_l1_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l1","yME0Pull_l1",500,-5.,5.));
+  ME0_Pull_l2_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l2","yME0Pull_l2",500,-5.,5.));
+  ME0_Pull_l3_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l3","yME0Pull_l3",500,-5.,5.));
+  ME0_Pull_l4_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l4","yME0Pull_l4",500,-5.,5.));
+  ME0_Pull_l5_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l5","yME0Pull_l5",500,-5.,5.));
+  ME0_Pull_l6_y = std::unique_ptr<TH1F>(new TH1F("yME0Pull_l6","yME0Pull_l6",500,-5.,5.));
 }
 
 
@@ -184,7 +185,7 @@ TestME0SegmentAnalyzer::~TestME0SegmentAnalyzer()
   ME0_fitchi2->Write();
   ME0_rhmult->Write();
   ME0_rhmultb->Write();
-  ME0_sgmult->Write();
+  ME0_sgmult->Write(); std::cout<<"Written histogram ME0_sgmult to rootfile"<<std::endl;
   ME0_rhtime->Write();
   ME0_sgtime->Write();
   ME0_sgterr->Write();
@@ -284,7 +285,7 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   ME0_recdPhi->Fill(fabs(deltaPhi(plmax,plmin)));
   
   std::cout <<"Number of Segments "<<me0Segment->size()<<std::endl;
-  ME0_sgmult->Fill(me0Segment->size());
+  ME0_sgmult->Fill(me0Segment->size()); 
   float hmax = 0;
   for (auto me0s = me0Segment->begin(); me0s != me0Segment->end(); me0s++) {
     // The ME0 Ensemble DetId refers to layer = 1   and roll = 1
@@ -293,7 +294,9 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     ME0_sgtime->Fill(me0s->time());
     ME0_sgterr->Fill(me0s->timeErr());
     std::cout <<"   Original ME0DetID "<<id<<std::endl;
-    auto roll = me0Geom->etaPartition(id); 
+    // Decide here whether to use etapartition or chamber as reference
+    // auto roll = me0Geom->etaPartition(id); 
+    auto roll = me0Geom->chamber(id); 
     std::cout <<"   Global Segment Position "<<  roll->toGlobal(me0s->localPosition())<<std::endl;
     auto segLP = me0s->localPosition();
     auto segLD = me0s->localDirection();
