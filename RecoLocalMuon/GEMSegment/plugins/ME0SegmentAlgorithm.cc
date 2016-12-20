@@ -35,7 +35,7 @@ ME0SegmentAlgorithm::ME0SegmentAlgorithm(const edm::ParameterSet& ps) : ME0Segme
   dTimeChainBoxMax          = ps.getParameter<double>("dTimeChainBoxMax");
   maxRecHitsInCluster       = ps.getParameter<int>("maxRecHitsInCluster");
 
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::ctor] Parameters to build segments :: "
+  edm::LogVerbatim("ME0SegAlgoMM") << "[ME0SegmentAlgorithm::ctor] Parameters to build segments :: "
 				   << "preClustering = "<<preClustering<<" preClustering_useChaining = "<<preClustering_useChaining
 				   <<" dPhiChainBoxMax = "<<dPhiChainBoxMax<<" dEtaChainBoxMax = "<<dEtaChainBoxMax<<" dTimeChainBoxMax = "<<dTimeChainBoxMax
 				   <<" minHitsPerSegment = "<<minHitsPerSegment<<" maxRecHitsInCluster = "<<maxRecHitsInCluster;
@@ -52,11 +52,11 @@ std::vector<ME0Segment> ME0SegmentAlgorithm::run(const ME0Ensemble& ensemble, co
 
   #ifdef EDM_ML_DEBUG // have lines below only compiled when in debug mode
   ME0DetId chId((ensemble.first)->id());  
-  edm::LogVerbatim("ME0SegAlgoMM") << "[ME0SegmentAlgorithm::run] build segments in chamber " << chId << " which contains "<<rechits.size()<<" rechits";
+  edm::LogVerbatim("ME0SegAlgoMM") << "[ME0SegAlgoMM::run] build segments in chamber " << chId << " which contains "<<rechits.size()<<" rechits";
   for (auto rh=rechits.begin(); rh!=rechits.end(); ++rh){
     auto me0id = (*rh)->me0Id();
     auto rhLP = (*rh)->localPosition();
-    edm::LogVerbatim("ME0SegmentAlgorithm") << "[RecHit :: Loc x = "<<std::showpos<<std::setw(9)<<rhLP.x()<<" Loc y = "<<std::showpos<<std::setw(9)<<rhLP.y()<<" Time = "<<std::showpos<<(*rh)->tof()<<" -- "<<me0id.rawId()<<" = "<<me0id<<" ]";
+    edm::LogVerbatim("ME0SegAlgoMM") << "[RecHit :: Loc x = "<<std::showpos<<std::setw(9)<<rhLP.x()<<" Loc y = "<<std::showpos<<std::setw(9)<<rhLP.y()<<" Time = "<<std::showpos<<(*rh)->tof()<<" -- "<<me0id.rawId()<<" = "<<me0id<<" ]";
   }
   #endif
 
@@ -289,11 +289,11 @@ void ME0SegmentAlgorithm::buildSegments(const ME0Ensemble& ensemble, const Ensem
   if (rechits.size() < minHitsPerSegment) return;
   
 #ifdef EDM_ML_DEBUG // have lines below only compiled when in debug mode 
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::buildSegments] will now try to fit a ME0Segment from collection of "<<rechits.size()<<" ME0 RecHits";
+  edm::LogVerbatim("SegAlgoMM") << "[ME0SegmentAlgorithm::buildSegments] will now try to fit a ME0Segment from collection of "<<rechits.size()<<" ME0 RecHits";
   for (auto rh=rechits.begin(); rh!=rechits.end(); ++rh){
     auto me0id = (*rh)->me0Id();
     auto rhLP = (*rh)->localPosition();
-    edm::LogVerbatim("ME0SegmentAlgorithm") << "[RecHit :: Loc x = "<<std::showpos<<std::setw(9)<<rhLP.x()<<" Loc y = "<<std::showpos<<std::setw(9)<<rhLP.y()<<" Time = "<<std::showpos<<(*rh)->tof()<<" -- "<<me0id.rawId()<<" = "<<me0id<<" ]";
+    edm::LogVerbatim("SegAlgoMM") << "[RecHit :: Loc x = "<<std::showpos<<std::setw(9)<<rhLP.x()<<" Loc y = "<<std::showpos<<std::setw(9)<<rhLP.y()<<" Time = "<<std::showpos<<(*rh)->tof()<<" -- "<<me0id.rawId()<<" = "<<me0id<<" ]";
   }
 #endif
 
@@ -301,7 +301,9 @@ void ME0SegmentAlgorithm::buildSegments(const ME0Ensemble& ensemble, const Ensem
   proto_segment.clear();
   
   // select hits from the ensemble and sort it 
-  const ME0EtaPartition * refPart   = ensemble.first;
+  // const ME0EtaPartition * refPart   = ensemble.first;
+  // const ME0Chamber * refPart   = ensemble.first;
+  const auto * refPart = ensemble.first; // this way we can deal with both etapart and chambers as reference
   for (auto rh=rechits.begin(); rh!=rechits.end();rh++){
     proto_segment.push_back(*rh);
     // for segFit - using local point in first partition frame
@@ -318,7 +320,7 @@ void ME0SegmentAlgorithm::buildSegments(const ME0Ensemble& ensemble, const Ensem
   // The actual fit on all hits of the vector of the selected Tracking RecHits:
   sfit_ = std::make_unique<MuonSegFit>(muonRecHits);
   bool goodfit = sfit_->fit();
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::buildSegments] ME0Segment fit done";
+  edm::LogVerbatim("SegAlgoMM") << "[ME0SegmentAlgorithm::buildSegments] ME0Segment fit done";
 
   // quit function if fit was not OK  
   if(!goodfit){
@@ -346,11 +348,11 @@ void ME0SegmentAlgorithm::buildSegments(const ME0Ensemble& ensemble, const Ensem
   timeUncrt = sqrt(timeUncrt);
 
   // save all information inside GEMCSCSegment
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::buildSegments] will now try to make ME0Segment from collection of "<<rechits.size()<<" ME0 RecHits";
+  edm::LogVerbatim("SegAlgoMM") << "[ME0SegmentAlgorithm::buildSegments] will now try to make ME0Segment from collection of "<<rechits.size()<<" ME0 RecHits";
   ME0Segment tmp(proto_segment, protoIntercept, protoDirection, protoErrors, protoChi2, averageTime, timeUncrt);
 
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::buildSegments] ME0Segment made";
-  edm::LogVerbatim("ME0SegmentAlgorithm") << "[ME0SegmentAlgorithm::buildSegments] "<<tmp;
+  edm::LogVerbatim("SegAlgoMM") << "[ME0SegmentAlgorithm::buildSegments] ME0Segment made";
+  edm::LogVerbatim("SegAlgoMM") << "[ME0SegmentAlgorithm::buildSegments] "<<tmp;
   
   for (auto rh:muonRecHits) rh.reset();
   me0segs.push_back(tmp);
