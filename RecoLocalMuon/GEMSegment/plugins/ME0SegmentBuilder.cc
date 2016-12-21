@@ -45,6 +45,7 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // At this point there is only one roll, so nothing to be worried about ...
     // [At a later stage one will have to mask also the rolls 
     // if one wants to recover segments that are at the border of a roll]
+    LogDebug("ME0SegmentBuilder") << "Rechit "<<*it2<<" in "<<it2->me0Id().rawId()<<" "<<it2->me0Id();
     ME0DetId id(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll());
     // save current ME0RecHit in vector associated to the reference id
     ensembleRH[id.rawId()].push_back(it2->clone());
@@ -52,10 +53,12 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // and through eta partition N-1 for layers X+1 .. NLAYERS
     // therefore check whether Layer > 1 and EtaPart < MAX
     // and put the rechit also in the ensembleRH for the EtaPart+1
+    /*
     if(it2->me0Id().layer()>1 && it2->me0Id().roll()<ME0DetId::maxRollId) {
       ME0DetId id2(it2->me0Id().region(),1,it2->me0Id().chamber(),it2->me0Id().roll()+1);
       ensembleRH[id2.rawId()].push_back(it2->clone());
     }
+    */
   }
 
   std::map<uint32_t, std::vector<ME0Segment> > ensembleSeg;  // collect here all segments from each reference first layer roll
@@ -91,14 +94,14 @@ void ME0SegmentBuilder::build(const ME0RecHitCollection* recHits, ME0SegmentColl
     // Add the segments to the chamber segment collection
     // segment is defined from first partition of first layer    
     //    ME0DetId midch = mid.chamberId();
-    std::cout <<" Inserting Segment in "<<mid<<std::endl;
+    LogDebug("ME0SegmentBuilder") <<" Inserting Segment in "<<mid<<std::endl;
     ensembleSeg[mid.rawId()].insert(ensembleSeg[mid.rawId()].end(), segv.begin(), segv.end());
   }
 
   for(auto segIt=ensembleSeg.begin(); segIt != ensembleSeg.end(); ++segIt) {
     // Add the segments to master collection
     ME0DetId midch(segIt->first);
-    std::cout <<" Writing Segment in "<<midch<<std::endl;
+    LogDebug("ME0SegmentBuilder") <<" Writing Segment in "<<midch<<std::endl;
     oc.put(midch, segIt->second.begin(), segIt->second.end());
   }
 }
