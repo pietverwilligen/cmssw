@@ -33,7 +33,7 @@ ME0SegAlgoRU::ME0SegAlgoRU(const edm::ParameterSet& ps)
   wideSeg        = ps.getParameter<double>("wideSeg");
   minLayersApart = ps.getParameter<int>("minLayersApart");
 
-  LogDebug("ME0") << myName << " has algorithm cuts set to: \n"
+  LogDebug("ME0SegAlgoRU") << myName << " has algorithm cuts set to: \n"
 		  << "--------------------------------------------------------------------\n"
 		  << "dRMax     = " << dRMax << '\n'
 		  << "dPhiMax      = " << dPhiMax << '\n'
