@@ -22,6 +22,8 @@
 ME0ReDigiProducer::ME0ReDigiProducer(const edm::ParameterSet& ps)
 {
   produces<ME0DigiPreRecoCollection>();
+  produces<ME0DigiMap>("OriginalME0DetId");
+  produces<ME0DigiMap>("OriginalME0DigiPreReco");
 
   edm::Service<edm::RandomNumberGenerator> rng;
   if (!rng.isAvailable()){
@@ -48,6 +50,7 @@ ME0ReDigiProducer::ME0ReDigiProducer(const edm::ParameterSet& ps)
   reDigitizeOnlyMuons_ = ps.getParameter<bool>("reDigitizeOnlyMuons");
   reDigitizeNeutronBkg_ = ps.getParameter<bool>("reDigitizeNeutronBkg");
   instLumi_ = ps.getParameter<double>("instLumi");
+  mergeReDigis_ = ps.getParameter<bool>("mergeReDigis");
 }
 
 
@@ -89,17 +92,27 @@ void ME0ReDigiProducer::produce(edm::Event& e, const edm::EventSetup& eventSetup
   e.getByToken(token_, input_digis);
 
   std::unique_ptr<ME0DigiPreRecoCollection> output_digis(new ME0DigiPreRecoCollection());
+  std::unique_ptr<ME0DigiMap> output_detidmap(new ME0DigiMap());
+  std::unique_ptr<ME0DigiMap> output_digimap(new ME0DigiMap());
 
-  // build the clusters
-  buildDigis(*(input_digis.product()), *output_digis, engine);
+  // build the digis
+  buildDigis(*(input_digis.product()),
+	     *output_digis,
+	     *output_detidmap,
+	     *output_digimap,
+	     engine);
 
   // store them in the event
   e.put(std::move(output_digis));
+  e.put(std::move(output_detidmap), "OriginalME0DetId");
+  e.put(std::move(output_digimap),  "OriginalME0DigiPreReco");
 }
 
 
 void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
                                    ME0DigiPreRecoCollection & output_digis,
+				   ME0DigiMap & output_detidmap,
+				   ME0DigiMap & output_digimap,
                                    CLHEP::HepRandomEngine* engine)
 {
   /*
@@ -118,14 +131,18 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
     - use gaussian smear with sigma_eff=sqrt(sigma_desired^2-300^2)
   */
 
+  int iDigi = -1;
   for(auto &roll: geometry_->etaPartitions()){
     const ME0DetId detId(roll->id());
     //const uint32_t rawId(detId.rawId());
     auto digis = input_digis.get(detId);
+    double oldXPosition = -999;
+    int n = 0;
     for (auto d = digis.first; d != digis.second; ++d) {
       const ME0DigiPreReco me0Digi = *d;
       edm::LogVerbatim("ME0ReDigiProducer")
         << "Check detId " << detId << " digi " << me0Digi << std::endl;
+      iDigi++;
 
       // selection
       if (reDigitizeOnlyMuons_ and std::abs(me0Digi.pdgid()) != 13) continue;
@@ -133,8 +150,8 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
 
       // scale background hits for luminosity
       if (!me0Digi.prompt())
-	if (CLHEP::RandFlat::shoot(engine) > instLumi_*1.0/5) continue;
-      
+        if (CLHEP::RandFlat::shoot(engine) > instLumi_*1.0/5) continue;
+
       edm::LogVerbatim("ME0ReDigiProducer")
         << "\tPassed selection" << std::endl;
 
@@ -148,8 +165,8 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       if(detId.roll() == 0) index = nPartitions_ * (detId.layer() -1) + detId.roll();
       edm::LogVerbatim("ME0ReDigiProducer")
 	<<"size "<<centralTOF_.size()<<" nPartitions "<<nPartitions_<<" layer "<<detId.layer()<<" roll "<<detId.roll()<<" index "<<index<<std::endl;
-      
-      const float t0(centralTOF_[ index ]);      
+
+      const float t0(centralTOF_[ index ]);
       const float correctedNewTof(newTof - t0);
 
       edm::LogVerbatim("ME0ReDigiProducer")
@@ -182,60 +199,60 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       float newR = oldR;
       if (me0Digi.prompt() and smearRadial_  and detId.roll() > 0)
 	newR = CLHEP::RandGaussQ::shoot(engine, oldR, radialResolution_);
-      
+
       // calculate the new position in local coordinates
       const GlobalPoint radialSmearedGP(GlobalPoint::Cylindrical(newR, oldGP.phi(), oldGP.z()));
       LocalPoint radialSmearedLP = roll->toLocal(radialSmearedGP);
-      
+
       // new y position after smearing
       const float targetYResolution(sqrt(newYResolution_*newYResolution_ - oldYResolution_ * oldYResolution_));
       float newLPy = radialSmearedLP.y();
       if (me0Digi.prompt())
 	newLPy = CLHEP::RandGaussQ::shoot(engine, radialSmearedLP.y(), targetYResolution);
-      
+
       const ME0EtaPartition* newPart = roll;
       LocalPoint newLP(radialSmearedLP.x(), newLPy, radialSmearedLP.z());
       GlobalPoint newGP(newPart->toGlobal(newLP));
-      	
+
       // check if digi moves one up or down roll
       int newRoll = detId.roll();
       if (newLP.y() > height)  --newRoll;
       if (newLP.y() < -height) ++newRoll;
 
       if (newRoll != detId.roll()){
-	// check if new roll is possible
-	if (newRoll < ME0DetId::minRollId || newRoll > ME0DetId::maxRollId){
-	  newRoll = detId.roll();
-	}
-	else {	 
-	  // roll changed, get new ME0EtaPartition
-	  newPart = geometry_->etaPartition(ME0DetId(detId.region(), detId.layer(), detId.chamber(), newRoll));
-	}
+        // check if new roll is possible
+        if (newRoll < ME0DetId::minRollId || newRoll > ME0DetId::maxRollId){
+          newRoll = detId.roll();
+        }
+        else {
+          // roll changed, get new ME0EtaPartition
+          newPart = geometry_->etaPartition(ME0DetId(detId.region(), detId.layer(), detId.chamber(), newRoll));
+        }
 
-	// if new ME0EtaPartition fails or roll not changed
-	if (!newPart or newRoll == detId.roll()){
-	  newPart = roll;
-	  // set local y to edge of etaPartition
-	  if (newLP.y() > height)  newLP = LocalPoint(newLP.x(), height, newLP.z());
-	  if (newLP.y() < -height) newLP = LocalPoint(newLP.x(), -height, newLP.z());	
-	}
-	else {// new partiton, get new local point
-	  newLP = newPart->toLocal(newGP);
-	}
-      }	
+        // if new ME0EtaPartition fails or roll not changed
+        if (!newPart or newRoll == detId.roll()){
+          newPart = roll;
+          // set local y to edge of etaPartition
+          if (newLP.y() > height)  newLP = LocalPoint(newLP.x(), height, newLP.z());
+          if (newLP.y() < -height) newLP = LocalPoint(newLP.x(), -height, newLP.z());
+        }
+        else {// new partiton, get new local point
+          newLP = newPart->toLocal(newGP);
+        }
+      }
 
       // smearing in X
       double newXResolutionCor = correctSigmaU(roll, newLP.y());
-      
+
       // new x position after smearing
       const float targetXResolution(sqrt(newXResolutionCor*newXResolutionCor - oldXResolution_ * oldXResolution_));
       float newLPx = newLP.x();
       if (me0Digi.prompt())
-	newLPx = CLHEP::RandGaussQ::shoot(engine, newLP.x(), targetXResolution);
+        newLPx = CLHEP::RandGaussQ::shoot(engine, newLP.x(), targetXResolution);
 
       // update local point after x smearing
       newLP = LocalPoint(newLPx, newLP.y(), newLP.z());
-      
+
       float newY(newLP.y());
       // new hit has y coordinate in the center of the roll when using discretizeY
       if (discretizeY_ and detId.roll() > 0) newY = 0;
@@ -244,7 +261,7 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
 
       float newX(newLP.x());
       edm::LogVerbatim("ME0ReDigiProducer")
-        << "\tnew X " << newX << std::endl;      
+        << "\tnew X " << newX << std::endl;
       // discretize the new X
       if (discretizeX_){
         int strip(newPart->strip(newLP));
@@ -255,10 +272,26 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
           << "\t\tdiscretized X " << newX << std::endl;
       }
 
+      // option to merge the re-digis
+      if (discretizeX_ and mergeReDigis_ and n>=1){
+        if (std::abs(oldXPosition - newX) < 0.001) {
+          continue;
+        }
+      }
+      oldXPosition = newX;
+
+      // keep digis when time = -25ns, 0ns, 25ns. This is a quick-and-dirty way to get the Dubna algorithm downstream to work at PU200
+      if (std::abs(newTime) > 25) continue;
+
       // make a new ME0DetId
       ME0DigiPreReco out_digi(newX, newY, targetXResolution, targetYResolution, me0Digi.corr(), newTime, me0Digi.pdgid(), me0Digi.prompt());
-
       output_digis.insertDigi(newPart->id(), out_digi);
+
+      // store index of previous detid and digi
+      output_detidmap.push_back(detId.rawId());
+      output_digimap.push_back(iDigi);
+
+      n++;
     }
   }
 }
