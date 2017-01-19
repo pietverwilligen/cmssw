@@ -25,8 +25,10 @@ void ME0SegmentsValidation::bookHistograms(DQMStore::IBooker & ibooker, edm::Run
   me0_segment_numRH     = ibooker.book1D("me0_seg_NumberRH",      "Number of fitted RecHits; # RecHits; entries",11,-0.5,10.5);
   // me0_segment_EtaRH     = ibooker.book1D("me0_specRH_globalEta",  "Fitted RecHits Eta Distribution; #eta; entries",20,2.0,3.0);
   // me0_segment_PhiRH     = ibooker.book1D("me0_specRH_globalPhi",  "Fitted RecHits Phi Distribution; #phi; entries",63,-3.14,3.14);
-  me0_segment_lThetaDir = ibooker.book1D("me0_seg_localThetaDir", "Segment local Theta Direction; #eta; entries",63,0.0,3.14);
-  me0_segment_lPhiDir   = ibooker.book1D("me0_seg_localPhiDir",   "Segment local Phi Direction; #phi; entries",126,-3.14,3.14);
+  me0_segment_lThetaDir = ibooker.book1D("me0_seg_localThetaDir", "Segment local Theta Direction; #eta; entries",300,0.0,3.14);
+  me0_segment_lPhiDir   = ibooker.book1D("me0_seg_localPhiDir",   "Segment local Phi Direction; #phi; entries",1260,-3.14,3.14);
+  // me0_segment_DeltaEtaRH= ibooker.book1D("me0_specRH_DeltaEta",   "Fitted RecHits Delta Eta Distribution; #Delta #eta; entries",200,-1.0,1.0);
+  // me0_segment_DeltaPhiRH= ibooker.book1D("me0_specRH_DeltaPhi",   "Fitted RecHits Delta Phi Distribution; #Delta #phi; entries",1260,-3.14,3.14);
   me0_segment_gEtaPos   = ibooker.book1D("me0_seg_globalEtaPos",  "Segment Eta Position Distribution; #eta; entries",20,2.0,3.0);
   me0_segment_gPhiPos   = ibooker.book1D("me0_seg_globalPhiPos",  "Segment Phi Position Distribution; #phi; entries",126,-3.14,3.14);
   me0_segment_time      = ibooker.book1D("me0_seg_time",          "Segment Timing; ns; entries",40,15,25);
@@ -121,6 +123,9 @@ void ME0SegmentsValidation::analyze(const edm::Event& e,
    me0_segment_gPhiPos->Fill(globalPhi);
    me0_segment_time->Fill(time);
    me0_segment_timeErr->Fill(timeErr);
+
+   // Float_t maxDeltaEta = 0.0;
+   // Float_t maxDeltaPhi = 0.0;
 
    for (auto rh = me0rhs.begin(); rh!= me0rhs.end(); rh++)
    {
