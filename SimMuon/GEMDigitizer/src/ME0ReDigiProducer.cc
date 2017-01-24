@@ -162,7 +162,7 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       // arrival time in ns
       //const float t0(centralTOF_[ nPartitions_ * (detId.layer() -1) + detId.roll() - 1 ]);
       int index = nPartitions_ * (detId.layer() -1) + detId.roll() - 1;
-      if(detId.roll() == 0) index = nPartitions_ * (detId.layer() -1) + detId.roll();
+      // if(detId.roll() == 0) index = nPartitions_ * (detId.layer() -1) + detId.roll();
       edm::LogVerbatim("ME0ReDigiProducer")
 	<<"size "<<centralTOF_.size()<<" nPartitions "<<nPartitions_<<" layer "<<detId.layer()<<" roll "<<detId.roll()<<" index "<<index<<std::endl;
 
@@ -193,16 +193,23 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       const std::vector<float> parameters(roll->specs()->parameters());
       const float height(parameters[2]); // G4 uses half-dimensions!
 
+      edm::LogVerbatim("ME0ReDigiProducer")<<" Old LP = "<<oldLP<<" Old GP = "<<oldGP<<" Middle of Roll GP = "<<centralGP<<" Height of Roll = "<<2*height<<std::endl;
+
       // smear the new radial with gaussian
       const float oldR(oldGP.perp());
 
       float newR = oldR;
-      if (me0Digi.prompt() and smearRadial_  and detId.roll() > 0)
+      // if (me0Digi.prompt() and smearRadial_  and detId.roll() > 0)
+      if (me0Digi.prompt() and smearRadial_ and nPartitions_ > 1)
 	newR = CLHEP::RandGaussQ::shoot(engine, oldR, radialResolution_);
+
+      edm::LogVerbatim("ME0ReDigiProducer")<<" Old Radius = "<<oldR<<" New Radius = "<<newR<<std::endl;
 
       // calculate the new position in local coordinates
       const GlobalPoint radialSmearedGP(GlobalPoint::Cylindrical(newR, oldGP.phi(), oldGP.z()));
       LocalPoint radialSmearedLP = roll->toLocal(radialSmearedGP);
+
+      edm::LogVerbatim("ME0ReDigiProducer")<<" New LP = "<<radialSmearedLP<<" new GP = "<<radialSmearedGP<<std::endl;
 
       // new y position after smearing
       const float targetYResolution(sqrt(newYResolution_*newYResolution_ - oldYResolution_ * oldYResolution_));
@@ -210,22 +217,32 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       if (me0Digi.prompt())
 	newLPy = CLHEP::RandGaussQ::shoot(engine, radialSmearedLP.y(), targetYResolution);
 
+      edm::LogVerbatim("ME0ReDigiProducer")<<" target Y resolution = "<<targetYResolution<<" LP Y coord before smearing = "<<radialSmearedLP.y()<<" LP Y coord after smearing = "<<newLPy<<std::endl;
+
       const ME0EtaPartition* newPart = roll;
       LocalPoint newLP(radialSmearedLP.x(), newLPy, radialSmearedLP.z());
       GlobalPoint newGP(newPart->toGlobal(newLP));
+
+      edm::LogVerbatim("ME0ReDigiProducer")<<" Using newPart = "<<roll->id()<<" => New LP = "<<newLP<<" new GP = "<<newGP<<std::endl;
 
       // check if digi moves one up or down roll
       int newRoll = detId.roll();
       if (newLP.y() > height)  --newRoll;
       if (newLP.y() < -height) ++newRoll;
 
+      edm::LogVerbatim("ME0ReDigiProducer")<<"newRoll = "<<detId.roll()<<" newLP.y() > height ? "<<((newLP.y() > height)?1:0)<<" newLP.y() < -height ? "<<((newLP.y() < -height)?1:0)<<" ==> newRoll = "<<newRoll<<std::endl; 
+
       if (newRoll != detId.roll()){
+	edm::LogVerbatim("ME0ReDigiProducer")<<"newRoll != detId.roll()"<<std::endl;
+
         // check if new roll is possible
         if (newRoll < ME0DetId::minRollId || newRoll > ME0DetId::maxRollId){
           newRoll = detId.roll();
+	  edm::LogVerbatim("ME0ReDigiProducer")<<"New Roll is not possible => newRoll = "<<newRoll<<std::endl;
         }
         else {
           // roll changed, get new ME0EtaPartition
+	  edm::LogVerbatim("ME0ReDigiProducer")<<"New Roll is possible => newRoll = "<<newRoll<<std::endl;
           newPart = geometry_->etaPartition(ME0DetId(detId.region(), detId.layer(), detId.chamber(), newRoll));
         }
 
@@ -235,9 +252,11 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
           // set local y to edge of etaPartition
           if (newLP.y() > height)  newLP = LocalPoint(newLP.x(), height, newLP.z());
           if (newLP.y() < -height) newLP = LocalPoint(newLP.x(), -height, newLP.z());
+	  edm::LogVerbatim("ME0ReDigiProducer")<<"No New Partitions => New LP = "<<newLP<<std::endl;
         }
         else {// new partiton, get new local point
           newLP = newPart->toLocal(newGP);
+	  edm::LogVerbatim("ME0ReDigiProducer")<<"New Partitions => New LP = "<<newLP<<std::endl;
         }
       }
 
@@ -250,12 +269,15 @@ void ME0ReDigiProducer::buildDigis(const ME0DigiPreRecoCollection & input_digis,
       if (me0Digi.prompt())
         newLPx = CLHEP::RandGaussQ::shoot(engine, newLP.x(), targetXResolution);
 
+      edm::LogVerbatim("ME0ReDigiProducer")<<" target X resolution = "<<targetXResolution<<" LP X coord before smearing = "<<newLP.x()<<" LP X coord after smearing = "<<newLPx<<std::endl;
+
       // update local point after x smearing
       newLP = LocalPoint(newLPx, newLP.y(), newLP.z());
 
       float newY(newLP.y());
       // new hit has y coordinate in the center of the roll when using discretizeY
-      if (discretizeY_ and detId.roll() > 0) newY = 0;
+      // if (discretizeY_ and detId.roll() > 0) newY = 0;
+      if (discretizeY_ and nPartitions_ > 1) newY = 0;
       edm::LogVerbatim("ME0ReDigiProducer")
 	<< "\tnew Y " << newY << std::endl;
 
