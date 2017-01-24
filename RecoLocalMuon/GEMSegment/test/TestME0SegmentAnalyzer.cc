@@ -126,7 +126,8 @@ TestME0SegmentAnalyzer::TestME0SegmentAnalyzer(const edm::ParameterSet& iConfig)
 
 {
    //now do what ever initialization is needed
-  ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments","","ME0RERECO"));
+  // ME0Segment_Token = consumes<ME0SegmentCollection>(edm::InputTag("me0Segments","","ME0RERECO"));
+  ME0Segment_Token = consumes<ME0SegmentCollection>(iConfig.getParameter<edm::InputTag>("segmentToken"));
   ME0RecHit_Token  = consumes<ME0RecHitCollection>(edm::InputTag("me0RecHits"));
   ME0Digi_Token  = consumes<ME0DigiPreRecoCollection>(edm::InputTag("simMuonME0Digis"));
   //  ME0SimHit_Token = 
@@ -293,8 +294,9 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     ME0_sgtime->Fill(me0s->time());
     ME0_sgterr->Fill(me0s->timeErr());
     std::cout <<"   Original ME0DetID "<<id<<std::endl;
-    auto roll = me0Geom->etaPartition(id); 
-    std::cout <<"   Global Segment Position "<<  roll->toGlobal(me0s->localPosition())<<std::endl;
+    // auto roll = me0Geom->etaPartition(id); 
+    auto chamber = me0Geom->chamber(id); 
+    std::cout <<"   Global Segment Position "<<  chamber->toGlobal(me0s->localPosition())<<std::endl;
     auto segLP = me0s->localPosition();
     auto segLD = me0s->localDirection();
     std::cout <<"   Local Direction theta = "<<segLD.theta()<<" phi="<<segLD.phi()<<std::endl;
@@ -315,16 +317,16 @@ TestME0SegmentAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
       auto rhLP = rh->localPosition();
       auto erhLEP = rh->localPositionError();
       auto rhGP = rhr->toGlobal(rhLP); 
-      auto rhLPSegm = roll->toLocal(rhGP);
+      auto rhLPSegm = chamber->toLocal(rhGP);
       float xe  = segLP.x()+segLD.x()*(rhLPSegm.z()-segLP.z())/segLD.z();
       float ye  = segLP.y()+segLD.y()*(rhLPSegm.z()-segLP.z())/segLD.z();
       float ze = rhLPSegm.z();
       LocalPoint extrPoint(xe,ye,ze); // in segment rest frame
-      auto extSegm = rhr->toLocal(roll->toGlobal(extrPoint)); // in layer restframe
+      auto extSegm = rhr->toLocal(chamber->toGlobal(extrPoint)); // in layer restframe
       std::cout <<"      ME0 Layer Id "<<rh->me0Id()<<"  error on the local point "<<  erhLEP
                 <<"\n-> Ensemble Rest Frame  RH local  position "<<rhLPSegm<<"  Segment extrapolation "<<extrPoint
 		<<"\n-> Layer Rest Frame  RH local  position "<<rhLP<<"  Segment extrapolation "<<extSegm
-                <<"\n-> Global Position rechit " << rhGP <<" Segm Extrapolation "<<roll->toGlobal(extrPoint)
+                <<"\n-> Global Position rechit " << rhGP <<" Segm Extrapolation "<<chamber->toGlobal(extrPoint)
 		<<"\n-> Timing "<<rh->tof()
 		<<std::endl;
       ME0_Residuals_x->Fill(rhLP.x()-extSegm.x());
