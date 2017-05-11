@@ -22,9 +22,9 @@ simMuonRPCDigis = cms.EDProducer("RPCDigiProducer",
         timeJitter = cms.double(1.0),
         IRPC_time_resolution = cms.double(0.1),
         IRPC_electronics_jitter = cms.double(0.025),
-        digitizeElectrons = cms.bool(False), # False - do not digitize electron hits (they are included in bkg simulation configured with doBkgNoise)
+        digitizeElectrons = cms.bool(True), # False - do not digitize electron hits (they are included in bkg simulation configured with doBkgNoise)
     ),
-    doBkgNoise = cms.bool(True), #False - no noise and bkg simulation
+    doBkgNoise = cms.bool(False), #False - no noise and bkg simulation
     Signal = cms.bool(True),
     mixLabel = cms.string('mix'),                                 
     InputCollection = cms.string('g4SimHitsMuonRPCHits'),
