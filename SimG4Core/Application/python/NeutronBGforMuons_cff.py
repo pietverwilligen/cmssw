@@ -7,6 +7,7 @@ def neutronBG(process):
   if hasattr(process,'g4SimHits'):
   # time window 100 millisecond
     TimeCut = cms.double(10000000000.0)
+    TimeCuts = cms.vdouble(10000000000.0,10000000000.0,10000000000.0,10000000000.0,10000000000.0)
     process.common_maximum_time.MaxTrackTime = TimeCut
     process.common_maximum_time.DeadRegions = cms.vstring()
     # Physics List XS
@@ -29,7 +30,8 @@ def neutronBG(process):
     process.g4SimHits.StackingAction.RusRoGammaEnergyLimit = cms.double(0.0)
     process.g4SimHits.StackingAction.RusRoNeutronEnergyLimit = cms.double(0.0)
     # Calorimeter hits
-    process.g4SimHits.CaloSD.TmaxHit = TimeCut
+    process.g4SimHits.CaloSD.TmaxHit  = TimeCut
+    process.g4SimHits.CaloSD.TmaxHits = TimeCuts
     # full simulation of HF 
     process.g4SimHits.HFShower.UseHFGflash = cms.bool(False)
 
