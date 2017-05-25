@@ -53,7 +53,8 @@ _simMuonRPCDigisPhaseII = cms.EDProducer("RPCandIRPCDigiProducer",
         Nbxing = cms.int32(9),
         timeJitter = cms.double(1.0),
         IRPC_time_resolution = cms.double(0.1),
-        IRPC_electronics_jitter = cms.double(0.025)
+        IRPC_electronics_jitter = cms.double(0.025),
+        digitizeElectrons = cms.bool(True),
     ),
     doBkgNoise = cms.bool(False), #False - no noise and bkg simulation
     Signal = cms.bool(True),
