@@ -77,8 +77,14 @@ namespace edm {
   template<typename T>
     Adjuster<T>::Adjuster(InputTag const& tag, ConsumesCollector&& iC, bool wrapLongTimes) : tag_(tag), token_(iC.consumes<T>(tag)) {
     if(wrapLongTimes) {
-      std::string Musearch = tag_.instance();
-      if(Musearch.find("Muon") == 0) WrapT_ = true; // wrap time for neutrons in Muon system subdetectors
+      // switch this off probably implements it for all detectors
+      // std::string Musearch = tag_.instance();
+      // if(Musearch.find("Muon") == 0) WrapT_ = true; // wrap time for neutrons in Muon system subdetectors
+      // if(Musearch.find("Ecal") == 0) WrapT_ = true; // wrap time for neutrons in ECAL
+      // if(Musearch.find("Hcal") == 0) WrapT_ = true; // wrap time for neutrons in HCAL
+      // if(Musearch.find("HGC") == 0)  WrapT_ = true; // wrap time for neutrons in HGC
+      WrapT_ = true;
+
     }
   }
 }
