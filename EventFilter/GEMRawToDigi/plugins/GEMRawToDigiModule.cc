@@ -149,7 +149,6 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
         if (keepDAQStatus_) {
           outAMCStatus.get()->insertDigi(fedId, st_amc);
         }
-        //continue;
       }
 
       uint16_t amcBx = amc.bunchCrossing();
@@ -197,7 +196,6 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
             if (keepDAQStatus_) {
               outVFATStatus.get()->insertDigi(gemId, st_vfat);
             }
-            continue;
           }
 
           int bx(vfat.bc() - amcBx);
