@@ -123,6 +123,7 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
     GEMAMC13Status st_amc13(fedData);
     if (st_amc13.isBad()) {
       LogDebug("GEMRawToDigiModule") << st_amc13;
+      edm::LogWarning("GEMRawToDigiModule") << st_amc13;
       if (keepDAQStatus_) {
         outAMC13Status.get()->insertDigi(fedId, st_amc13);
       }
@@ -148,6 +149,7 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
       GEMAMCStatus st_amc(amc13.get(), amc);
       if (st_amc.isBad()) {
         LogDebug("GEMRawToDigiModule") << st_amc;
+        edm::LogWarning("GEMRawToDigiModule") << "amcNum:" << int(amcNum) << " status: " << st_amc;
         if (keepDAQStatus_) {
           outAMCStatus.get()->insertDigi(fedId, st_amc);
         }
@@ -174,6 +176,7 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
         GEMOHStatus st_oh(optoHybrid);
         if (st_oh.isBad()) {
           LogDebug("GEMRawToDigiModule") << st_oh;
+          edm::LogWarning("GEMRawToDigiModule") << "amcNum:" << int(amcNum) << " OHnum:" << int(gebId) << " status: " << st_oh;
           if (keepDAQStatus_) {
             outOHStatus.get()->insertDigi(gemChId, st_oh);
           }
@@ -197,6 +200,7 @@ void GEMRawToDigiModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
           GEMVFATStatus st_vfat(amc, vfat, vfat.phi(), readMultiBX_);
           if (st_vfat.isBad()) {
             LogDebug("GEMRawToDigiModule") << st_vfat;
+            edm::LogWarning("GEMRawToDigiModule") << "amcNum:" << int(amcNum) << " OHnum:" << int(gebId) << " vfatId:"<< vfatId << " status: " << st_vfat;
             if (keepDAQStatus_) {
               outVFATStatus.get()->insertDigi(gemId, st_vfat);
             }
