@@ -293,6 +293,7 @@ public:
       if (bIsProfile_) {
         mapHist[key] = bh.bookProfile2D(
             strName_, strTitle_, nBinsX_, dXL_, dXH_, nBinsY_, dYL_, dYH_, dZL_, dZH_, strTitleX_, strTitleY_);
+        return 0;
       } else if (nBinsY_ > 0 && nBinsX_ > 0) {
         mapHist[key] = bh.book2D(strName_, strTitle_, nBinsX_, dXL_, dXH_, nBinsY_, dYL_, dYH_, strTitleX_, strTitleY_);
         return 0;
@@ -541,7 +542,9 @@ inline bool GEMDQMBase::checkRefs(const std::vector<T *> &refs) {
 
 // The 'get...' functions in the below are borrwed from DQMOffline/Muon/interface/GEMOfflineDQMBase.h
 inline int GEMDQMBase::getMaxVFAT(const int station) {
-  if (station == 1)
+  if (station == 0)
+    return GEMeMap::maxVFatGE0_;
+  else if (station == 1)
     return GEMeMap::maxVFatGE11_;
   else if (station == 2)
     return GEMeMap::maxVFatGE21_;
