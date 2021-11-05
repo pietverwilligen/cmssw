@@ -8,14 +8,9 @@ public:
   struct eCoord {
     uint16_t amcId;
     uint16_t gebId;
-    uint16_t vfatId;
     bool operator<(const eCoord& r) const {
       if (amcId == r.amcId) {
-        if (gebId == r.gebId) {
-          return vfatId < r.vfatId;
-        } else {
           return gebId < r.gebId;
-        }
       } else {
         return amcId < r.amcId;
       }
@@ -23,41 +18,48 @@ public:
   };
 
   struct dCoord {
-    int vfatType;
+    int chamberType;
     GEMDetId gemDetId;
-    int iPhi;
     bool operator<(const dCoord& r) const {
-      if (vfatType == r.vfatType) {
-        if (gemDetId == r.gemDetId) {
-          return iPhi < r.iPhi;
-        } else {
-          return gemDetId < r.gemDetId;
-        }
+      if (chamberType == r.chamberType) {
+        return gemDetId < r.gemDetId;
       } else {
-        return vfatType < r.vfatType;
+        return chamberType < r.chamberType;
       }
     }
   };
 
   struct channelNum {
-    int vfatType;
+    int chamberType;
+    int vfatAdd;
     int chNum;
     bool operator<(const channelNum& c) const {
-      if (vfatType == c.vfatType)
-        return chNum < c.chNum;
-      else
-        return vfatType < c.vfatType;
+      if (chamberType == c.chamberType) {
+        if (vfatAdd == c.vfatAdd) {
+          return chNum < c.chNum;
+        } else {
+          return vfatAdd < c.vfatAdd;
+        }
+      } else {
+        return chamberType < c.chamberType;
+      }
     }
   };
 
   struct stripNum {
-    int vfatType;
+    int chamberType;
+    int iEta;
     int stNum;
     bool operator<(const stripNum& s) const {
-      if (vfatType == s.vfatType)
-        return stNum < s.stNum;
-      else
-        return vfatType < s.vfatType;
+      if (chamberType == s.chamberType) {
+        if (iEta == s.iEta) {
+          return stNum < s.stNum;
+        } else {
+          return iEta < s.iEta;
+        }
+      } else {
+        return chamberType < s.chamberType;
+      }
     }
   };
 

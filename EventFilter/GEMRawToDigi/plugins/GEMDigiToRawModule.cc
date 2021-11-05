@@ -136,11 +136,12 @@ void GEMDigiToRawModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
         if (!gemROMap->isValidChamber(geb_ec))
           continue;
         GEMROMapping::chamDC geb_dc = gemROMap->chamberPos(geb_ec);
+        GEMDetId cid = geb_dc.detId;
 
-        auto vfats = gemROMap->getVfats(geb_dc.detId);
+        auto vfats = gemROMap->getVfats(geb_dc.chamberType);
         for (auto const& vfat_ec : vfats) {
-          GEMROMapping::vfatDC vfat_dc = gemROMap->vfatPos(vfat_ec);
-          GEMDetId gemId = vfat_dc.detId;
+          int iEta = vfat_ec.iEta;
+          GEMDetId gemId(cid.region(), cid.ring(), cid.station(), cid.layer(), cid.chamber(), iEta);
           uint16_t vfatId = vfat_ec.vfatAdd;
 
           for (auto const& gemBx : gemBxMap) {
@@ -155,15 +156,13 @@ void GEMDigiToRawModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
             for (GEMDigiCollection::const_iterator digiIt = range.first; digiIt != range.second; ++digiIt) {
               const GEMDigi& digi = (*digiIt);
 
-              int localStrip = digi.strip() - vfat_dc.localPhi * GEMeMap::maxChan_;
-
-              // skip strips not in current vFat
-              if (localStrip < 0 || localStrip > GEMeMap::maxChan_ - 1)
-                continue;
+              int strip = digi.strip();
 
               hasDigi = true;
-              GEMROMapping::stripNum stMap = {vfat_dc.vfatType, localStrip};
+              GEMROMapping::stripNum stMap = {geb_dc.chamberType, iEta, strip};
               GEMROMapping::channelNum chMap = gemROMap->hitPos(stMap);
+
+              if (chMap.vfatAdd != vfatId) continue;
 
               if (chMap.chNum < 64)
                 lsData |= 1UL << chMap.chNum;
@@ -172,7 +171,7 @@ void GEMDigiToRawModule::produce(edm::StreamID iID, edm::Event& iEvent, edm::Eve
 
               LogDebug("GEMDigiToRawModule")
                   << "fed: " << fedId << " amc:" << int(amcNum) << " geb:" << int(gebId) << " vfat id:" << int(vfatId)
-                  << ",type:" << vfat_dc.vfatType << " id:" << gemId << " ch:" << chMap.chNum << " st:" << digi.strip()
+                  << ",type:" << geb_dc.chamberType << " id:" << gemId << " ch:" << chMap.chNum << " st:" << digi.strip()
                   << " bx:" << digi.bx();
             }
 
