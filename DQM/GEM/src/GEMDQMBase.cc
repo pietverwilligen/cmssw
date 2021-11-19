@@ -7,9 +7,9 @@ using namespace edm;
 GEMDQMBase::GEMDQMBase(const edm::ParameterSet& cfg) : geomToken_(esConsumes<edm::Transition::BeginRun>()) {
   log_category_ = cfg.getUntrackedParameter<std::string>("logCategory");
 
-  nNumEtaPartitionGE0_ = 0;
-  nNumEtaPartitionGE11_ = 0;
-  nNumEtaPartitionGE21_ = 0;
+  nNumEtaPartitionGE0_ = 8;
+  nNumEtaPartitionGE11_ = 8;
+  nNumEtaPartitionGE21_ = 16;
 }
 
 int GEMDQMBase::initGeometry(edm::EventSetup const& iSetup) {
