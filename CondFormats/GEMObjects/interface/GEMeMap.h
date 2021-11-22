@@ -24,29 +24,22 @@ public:
     std::vector<uint8_t> gebId;
     std::vector<int> gemNum;
     std::vector<int> vfatVer;
+    std::vector<int> chamberType;
 
     COND_SERIALIZABLE;
   };
 
-  struct GEMVFatMap {
-    std::vector<int> gemNum;
-    std::vector<uint16_t> vfatAdd;
-    std::vector<int> vfatType;
-    std::vector<int> iEta;
-    std::vector<int> localPhi;
-
-    COND_SERIALIZABLE;
-  };
   struct GEMStripMap {
-    std::vector<int> vfatType;
+    std::vector<int> chamberType;
+    std::vector<int> vfatAdd;
     std::vector<int> vfatCh;
-    std::vector<int> vfatStrip;
+    std::vector<int> iEta;
+    std::vector<int> strip;
 
     COND_SERIALIZABLE;
   };
 
   std::vector<GEMChamberMap> theChamberMap_;
-  std::vector<GEMVFatMap> theVFatMap_;
   std::vector<GEMStripMap> theStripMap_;
 
 private:

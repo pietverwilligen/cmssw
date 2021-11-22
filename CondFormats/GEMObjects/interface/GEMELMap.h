@@ -18,15 +18,12 @@ public:
   void convert(GEMROmap& romap);
   void convertDummy(GEMROmap& romap);
 
-  struct GEMVFatMap {
-    int VFATmapTypeId;
+  struct GEMChamberMap {
+    int ChamberMapTypeId;
     std::vector<int> vfat_position;
     std::vector<int> z_direction;
-    std::vector<int> iEta;
-    std::vector<int> iPhi;
+    std::vector<int> chamberType;
     std::vector<int> depth;
-    std::vector<int> vfatType;
-    std::vector<uint16_t> vfatId;
     std::vector<uint16_t> amcId;
     std::vector<uint16_t> gebId;
     std::vector<int> sec;
@@ -34,14 +31,16 @@ public:
     COND_SERIALIZABLE;
   };
   struct GEMStripMap {
-    std::vector<int> vfatType;
+    std::vector<int> chamberType;
+    std::vector<int> vfatId;
     std::vector<int> vfatCh;
-    std::vector<int> vfatStrip;
+    std::vector<int> iEta;
+    std::vector<int> strip;
 
     COND_SERIALIZABLE;
   };
 
-  std::vector<GEMVFatMap> theVFatMap_;
+  std::vector<GEMChamberMap> theChamberMap_;
   std::vector<GEMStripMap> theStripMap_;
 
 private:
