@@ -18,7 +18,14 @@ GEMClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
     // So the prev. cluster is placed after the current cluster (check the < operator of GEMCluster carefully)
     if ((prev.firstStrip() - cl->lastStrip()) == 2 and this->get(mask, cl->lastStrip() + 1) and prev.bx() == cl->bx()) {
       prev = GEMCluster(cl->firstStrip(), prev.lastStrip(), cl->bx());
-    } else {
+    } 
+    else if( this->get(mask, prev.firstStrip() - 1) ) { // check whether masked strip = strip before first strip
+      prev = GEMCluster(prev.firstStrip()-1, prev.lastStrip(), prev.bx());
+    }
+    else if( this->get(mask, prev.lastStrip() + 1) ) {  // check whether masked strip = strip after last strip
+      prev = GEMCluster(prev.firstStrip(), prev.lastStrip()+1, prev.bx());
+    }
+    else {
       finClusters.insert(prev);
       prev = *cl;
     }
