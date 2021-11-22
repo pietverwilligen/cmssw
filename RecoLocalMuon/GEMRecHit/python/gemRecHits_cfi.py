@@ -5,9 +5,10 @@ import FWCore.ParameterSet.Config as cms
  
 from RecoLocalMuon.GEMRecHit.gemRecHitsDef_cfi import *
 gemRecHits = gemRecHitsDef.clone(
-    #applyMasking = False,
-    #maskFile = cms.FileInPath("RecoLocalMuon/GEMRecHit/data/maskedStrips.txt"),
-    #deadFile = cms.FileInPath("RecoLocalMuon/GEMRecHit/data/deadStrips.txt")
+    applyMasking = True,
+    # deadFile = cms.FileInPath("RecoLocalMuon/GEMRecHit/data/deadStrips_testbeam_eMapV1.txt"),
+    deadFile = cms.FileInPath("RecoLocalMuon/GEMRecHit/data/deadStrips_testbeam_eMapV2.txt"),
+    maskFile = cms.FileInPath("RecoLocalMuon/GEMRecHit/data/maskedStrips_testbeam.txt")
     )
 
 from Configuration.Eras.Modifier_phase2_GEM_cff import phase2_GEM
