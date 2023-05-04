@@ -22,7 +22,7 @@
     <Constant name="slope"  value="tan([Angle])"/>
     <Constant name="xBot"   value="([rMin]*[slope])"/> 
     <Constant name="xTop"   value="(2.*[dZ]*[slope]+[xBot])"/>
-    <Constant name="tBase"  value="29.975*mm"/>     <!-- Probably here I should act and set the border correctly? -->
+    <Constant name="tBase"  value="29.975*mm"/>     <!-- Readout PCB border: 11mm + 18.975mm -->
     <Constant name="tFoil"  value="0.025*mm"/>      <!-- half width GEM foil (50um) -->
     <Constant name="tSense" value="(6.0*mm-[tFoil])/2"/>
     <Constant name="tGas1"  value="(1.0*mm-2*[tFoil])/2"/>
