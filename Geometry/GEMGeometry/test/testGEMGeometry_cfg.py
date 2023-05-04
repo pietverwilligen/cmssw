@@ -2,10 +2,13 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process("Demo",eras.run3_GEM)
+# process = cms.Process("Demo",eras.run3_GEM)
+process = cms.Process("Demo",eras.Phase2)
 
-process.load('Configuration.Geometry.GeometryExtended2021_cff')
-process.load('Configuration.Geometry.GeometryExtended2021Reco_cff')
+# process.load('Configuration.Geometry.GeometryExtended2021_cff')
+# process.load('Configuration.Geometry.GeometryExtended2021Reco_cff')
+process.load("Configuration.Geometry.GeometryExtended2026D99_cff")
+process.load("Configuration.Geometry.GeometryExtended2026D99Reco_cff")
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(1)
