@@ -33,6 +33,8 @@ using GEMRecHitFlatTableProducer = MuRecObjBaseProducer<GEMDetId, GEMRecHit, GEM
 
 using GEMSegmentFlatTableProducer = MuRecObjBaseProducer<GEMDetId, GEMSegment, GEMGeometry>;
 
+
+
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
