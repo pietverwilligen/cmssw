@@ -38,7 +38,10 @@ RawToDigiTask = cms.Task(
     muonDTDigis,
     muonRPCDigis,
     castorDigis,
-    scalersRawToDigi)
+    scalersRawToDigi,
+    tcdsDigis,
+    onlineMetaDataDigis,
+)
 
 RawToDigi = cms.Sequence(RawToDigiTask)
 
